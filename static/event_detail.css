@@ -1,16 +1,15 @@
-/* Styles specific to the event detail page */
 .event-detail-container {
     max-width: 900px;
-    margin: 0 auto; /* Center it within the main .container from base.html */
-    background: white;
+    margin: 0 auto;
+    background: var(--bg-secondary);
     border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 40px var(--shadow-color);
     overflow: hidden;
 }
 
 .page-header {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    color: white;
+    background: var(--bg-accent);
+    color: var(--text-inverted);
     padding: 40px;
     text-align: center;
 }
@@ -32,16 +31,16 @@
 }
 
 .info-card {
-    background: #f8fafc;
+    background: var(--bg-tertiary);
     border-radius: 12px;
     padding: 20px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-primary);
 }
 
 .info-card label {
     display: block;
     font-weight: 500;
-    color: #6b7280;
+    color: var(--text-muted);
     font-size: 0.9rem;
     margin-bottom: 8px;
 }
@@ -49,7 +48,7 @@
 .info-card .value {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -62,18 +61,18 @@
 .section-title {
     font-size: 1.4rem;
     font-weight: 600;
-    color: #2d3748;
+    color: var(--text-secondary);
     margin-bottom: 20px;
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 2px solid var(--border-primary);
     padding-bottom: 10px;
 }
 
 .text-block {
-    background: #f8fafc;
+    background: var(--bg-tertiary);
     border-radius: 12px;
     padding: 20px;
     font-size: 1rem;
-    color: #374151;
+    color: var(--text-secondary);
     line-height: 1.6;
 }
 
@@ -84,8 +83,8 @@
 }
 
 .participant {
-    background: #eef2ff;
-    color: #4338ca;
+    background: var(--color-info-bg);
+    color: var(--color-info-text);
     text-decoration: none;
     padding: 8px 15px;
     border-radius: 20px;
@@ -97,14 +96,17 @@
 }
 
 .participant:hover {
-    background: #e0e7ff;
-    color: #3730a3;
+    filter: brightness(95%);
+}
+
+[data-theme="dark"] .participant:hover {
+    filter: brightness(120%);
 }
 
 .actions {
     margin-top: 40px;
     text-align: center;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border-primary);
     padding-top: 30px;
     display: flex;
     justify-content: center;
@@ -113,7 +115,6 @@
     flex-wrap: wrap;
 }
 
-/* Specific button styles for this page's actions */
 .btn, .btn-edit, .btn-delete, .btn-secondary {
     text-decoration: none;
     border: none;
@@ -127,6 +128,17 @@
     gap: 8px;
 }
 
-.btn-edit { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-.btn-delete { background: #ef4444; color: white; }
-.btn-secondary { background: #6b7280; color: white; }
+.btn-edit {
+    background: var(--accent-gradient);
+    color: var(--text-inverted);
+}
+
+.btn-delete {
+    background: #ef4444; /* Keep a strong danger color */
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--text-muted);
+    color: var(--text-inverted);
+}

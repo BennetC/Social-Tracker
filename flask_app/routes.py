@@ -18,13 +18,13 @@ def _update_next_contact_date(relationship: Relationship):
     follow-up frequency.
     """
     if not relationship.follow_up_frequency:
-        return  # Do nothing if no frequency is set
+        return
 
     frequency_map = {
         'daily': timedelta(days=1),
         'weekly': timedelta(weeks=1),
         'bi-weekly': timedelta(weeks=2),
-        'monthly': timedelta(days=30),  # Simplified for consistency
+        'monthly': timedelta(days=30),
         'quarterly': timedelta(days=90)
     }
 
@@ -36,7 +36,6 @@ def _update_next_contact_date(relationship: Relationship):
 @app.route('/')
 def index():
     """Main dashboard showing all relationships, with eager loading for efficiency."""
-    # Define the custom order for the 'priority' field
     priority_ordering = case(
         {
             'Very High': 5,
@@ -46,7 +45,7 @@ def index():
             'Very Low': 1
         },
         value=Relationship.priority,
-        else_=0  # For any other unexpected values
+        else_=0
     ).desc()
 
     relationships = Relationship.query.options(
@@ -64,7 +63,6 @@ def index():
 @app.cli.command("seed")
 def seed_all():
     """Seeds the database with initial platforms and connection types from config."""
-    # Seed Platforms
     platform_rules = current_app.config.get('PLATFORM_CONFIG', {})
     print("Seeding platforms...")
     for name, rules in platform_rules.items():
@@ -77,11 +75,9 @@ def seed_all():
             )
             db.session.add(platform)
             print(f"  Added platform: {name}")
-        else:  # Update existing platforms to match config
+        else:
             platform.requires_handle = rules.get('requires_handle', True)
             platform.requires_link = rules.get('requires_link', True)
-
-    # Seed Connection Types
     initial_types = current_app.config.get('CONNECTION_TYPES', [])
     print("\nSeeding connection types...")
     for type_name in initial_types:
@@ -127,7 +123,6 @@ def create_relationship():
             notes=data.get('notes'),
             next_contact_due=datetime.strptime(data.get('next_contact_due'), '%Y-%m-%d').replace(
                 tzinfo=UTC) if data.get('next_contact_due') else None,
-            # --- NEW FIELDS ---
             follow_up_frequency=data.get('follow_up_frequency') or None,
             next_follow_up_topic=data.get('next_follow_up_topic')
         )
@@ -201,8 +196,6 @@ def create_relationship():
                 if link_idx < len(links):
                     current_link = links[link_idx]
                     link_idx += 1
-
-            # --- NEW: AUTO-GENERATE PROFILE LINK ---
             if not current_link and current_handle:
                 base_url = current_app.config.get('PLATFORM_BASE_URLS', {}).get(platform.name)
                 if base_url:
@@ -296,7 +289,7 @@ def manage_connection_types():
 def get_relationship(relationship_id):
     """Get relationship details"""
     relationship = Relationship.query.options(
-        joinedload(Relationship.interactions)  # Eager load interaction history
+        joinedload(Relationship.interactions)
     ).get_or_404(relationship_id)
     return render_template('relationship_detail.html', relationship=relationship)
 
@@ -414,8 +407,6 @@ def edit_relationship(relationship_id):
         try:
             data = request.form
             if not data.get('name'): raise ValueError("Full Name is a required field.")
-
-            # 1. Update basic relationship fields
             relationship.name = data.get('name')
             relationship.goal = data.get('goal')
             relationship.execution_strategy = data.get('execution_strategy')
@@ -424,11 +415,8 @@ def edit_relationship(relationship_id):
             relationship.notes = data.get('notes')
             relationship.next_contact_due = datetime.strptime(data.get('next_contact_due'), '%Y-%m-%d').replace(
                 tzinfo=UTC) if data.get('next_contact_due') else None
-            # --- MODIFIED: Update new fields ---
             relationship.follow_up_frequency = data.get('follow_up_frequency') or None
             relationship.next_follow_up_topic = data.get('next_follow_up_topic')
-
-            # 2. Update Connection Types by removing old and adding new
             RelationshipConnectionType.query.filter_by(relationship_id=relationship.id).delete()
             selected_ctype_ids = request.form.getlist('connection_type_ids')
             if not selected_ctype_ids: raise ValueError("You must select at least one Connection Type.")
@@ -440,8 +428,6 @@ def edit_relationship(relationship_id):
                     connection_type_id=int(ctype_id),
                     is_primary=(str(ctype_id) == str(primary_ctype_id))
                 ))
-
-            # 3. Update Tags by removing old and adding new
             RelationshipTag.query.filter_by(relationship_id=relationship.id).delete()
             tag_names_str = data.get('tags', '')
             primary_tag_name = data.get('primary_tag_name', '').strip().lower()
@@ -460,8 +446,6 @@ def edit_relationship(relationship_id):
                     tag_id=tag.id,
                     is_primary=(tag.name == primary_tag_name)
                 ))
-
-            # 4. Update Social Media by removing old and adding new
             SocialMedia.query.filter_by(relationship_id=relationship.id).delete()
             platforms = data.getlist('platform[]')
             handles = data.getlist('handle[]')
@@ -519,8 +503,6 @@ def edit_relationship(relationship_id):
             print(f"ERROR in edit_relationship: {type(e).__name__} - {e}")
             flash(f"An error occurred: {e}", "danger")
             return redirect(url_for('edit_relationship', relationship_id=relationship_id))
-
-    # GET Request Logic
     platforms = Platform.query.order_by(Platform.name).all()
     platforms_data = [{"name": p.name, "requires_handle": p.requires_handle, "requires_link": p.requires_link} for p in
                       platforms]
@@ -568,8 +550,6 @@ def add_event():
                 end_date=datetime.strptime(data.get('end_date'), '%Y-%m-%d').replace(tzinfo=UTC) if data.get(
                     'end_date') else None
             )
-
-            # Add participants
             participant_ids = request.form.getlist('participant_ids')
             if participant_ids:
                 participants = Relationship.query.filter(Relationship.id.in_(participant_ids)).all()
@@ -582,8 +562,6 @@ def add_event():
         except (ValueError, KeyError) as e:
             db.session.rollback()
             flash(f'An error occurred: {e}', 'danger')
-
-    # GET request
     relationships = Relationship.query.order_by(Relationship.name).all()
     return render_template('add_event.html', relationships=relationships)
 
@@ -613,9 +591,7 @@ def edit_event(event_id):
                 'start_date') else None
             event.end_date = datetime.strptime(data.get('end_date'), '%Y-%m-%d').replace(tzinfo=UTC) if data.get(
                 'end_date') else None
-
-            # Update participants
-            event.participants.clear()  # Remove old participants
+            event.participants.clear()
             participant_ids = request.form.getlist('participant_ids')
             if participant_ids:
                 participants = Relationship.query.filter(Relationship.id.in_(participant_ids)).all()
@@ -627,8 +603,6 @@ def edit_event(event_id):
         except (ValueError, KeyError) as e:
             db.session.rollback()
             flash(f'An error occurred: {e}', 'danger')
-
-    # GET request
     relationships = Relationship.query.order_by(Relationship.name).all()
     participant_ids = {p.id for p in event.participants}
     return render_template('edit_event.html', event=event, relationships=relationships, participant_ids=participant_ids)

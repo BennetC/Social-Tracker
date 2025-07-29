@@ -1,61 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Interaction</title>
+{% extends "base.html" %}
+
+{% block title %}Edit Interaction{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='form_styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='edit_interaction.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-edit"></i> Edit Interaction</h1>
-            <p>Refining the log for your relationship with <strong>{{ interaction.relationship.name }}</strong></p>
-        </div>
+{% endblock %}
 
-        <div class="form-container">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="flash {{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+{% block header_nav %}
+    {# This is a detail page, clear main nav and add a back link #}
+    <a href="{{ url_for('get_interaction', interaction_id=interaction.id) }}" class="nav-link"><i class="fas fa-arrow-left"></i> Back to Interaction</a>
+{% endblock %}
 
-            <form method="POST" action="{{ url_for('edit_interaction', interaction_id=interaction.id) }}">
-                <div class="form-group">
-                    <label for="title">Title *</label>
-                    <input type="text" id="title" name="title" required value="{{ interaction.title or '' }}">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="interaction-type">Type</label>
-                        <select id="interaction-type" name="type">
-                            {% set types = ['comment', 'DM', 'email', 'meeting', 'call', 'follow-up', 'help'] %}
-                            {% for type in types %}
-                            <option value="{{ type }}" {% if interaction.type == type %}selected{% endif %}>{{ type.replace('-', ' ')|title }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="interaction-platform">Platform/Method</label>
-                        <input type="text" id="interaction-platform" name="platform" placeholder="e.g., Twitter, Email" value="{{ interaction.platform or '' }}">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="details">Details</label>
-                    <textarea id="details" name="details" placeholder="What was discussed? What was the outcome?">{{ interaction.details or '' }}</textarea>
-                </div>
-
-                <div class="submit-section">
-                    <button type="submit" class="btn-primary">Save Changes</button>
-                    <a href="{{ url_for('get_interaction', interaction_id=interaction.id) }}" class="btn-secondary">Cancel</a>
-                </div>
-            </form>
-        </div>
+{% block content %}
+<div class="form-page-container">
+    <div class="form-header">
+        <h1><i class="fas fa-edit"></i> Edit Interaction</h1>
+        <p>Refining the log for your relationship with <strong>{{ interaction.relationship.name }}</strong></p>
     </div>
-</body>
-</html>
+
+    <div class="form-container">
+        <form method="POST" action="{{ url_for('edit_interaction', interaction_id=interaction.id) }}">
+            <div class="form-group">
+                <label for="title">Title *</label>
+                <input type="text" id="title" name="title" required value="{{ interaction.title or '' }}">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="interaction-type">Type</label>
+                    <select id="interaction-type" name="type">
+                        {% set types = ['comment', 'DM', 'email', 'meeting', 'call', 'follow-up', 'help'] %}
+                        {% for type in types %}
+                        <option value="{{ type }}" {% if interaction.type == type %}selected{% endif %}>{{ type.replace('-', ' ')|title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="interaction-platform">Platform/Method</label>
+                    <input type="text" id="interaction-platform" name="platform" placeholder="e.g., Twitter, Email" value="{{ interaction.platform or '' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="details">Details</label>
+                <textarea id="details" name="details" placeholder="What was discussed? What was the outcome?">{{ interaction.details or '' }}</textarea>
+            </div>
+
+            <div class="submit-section">
+                <button type="submit" class="btn-primary">Save Changes</button>
+                <a href="{{ url_for('get_interaction', interaction_id=interaction.id) }}" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

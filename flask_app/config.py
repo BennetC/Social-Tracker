@@ -2,10 +2,8 @@ import os
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
-# Load environment variables from a .env file
 load_dotenv()
 
-# Database credentials from environment variables
 user = os.getenv('DB_USERNAME', 'postgres')
 password = quote_plus(os.getenv('DB_PASSWORD', ''))
 db_name = 'socialtracker'
@@ -18,7 +16,6 @@ class Config:
 
     SECRET_KEY = os.getenv('SECRET_KEY')
 
-    # Defines the base score for each relationship priority level.
     PRIORITY_SCORES = {
         'Very High': 2.0,
         'High': 1.0,
@@ -27,10 +24,8 @@ class Config:
         'Very Low': 0.01
     }
 
-    # The multiplier applied to the score for any primary item (platform, tag, etc.).
     PRIMARY_ITEM_MULTIPLIER = 1.5
 
-    # Platform Input Rule Configuration
     PLATFORM_CONFIG = {
         'Twitter':   {'requires_handle': True,  'requires_link': False},
         'Instagram': {'requires_handle': True,  'requires_link': False},

@@ -1,28 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Connection Types - Social Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='manage_connection_types.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-</head>
-<body>
-    <div class="header">
-        <div class="header-content">
-            <h1><i class="fas fa-sitemap"></i> Manage Connection Types</h1>
-            <a href="{{ url_for('index') }}" class="back-link"><i class="fas fa-arrow-left"></i> Dashboard</a>
-        </div>
-    </div>
-    <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+{% extends "base.html" %}
 
+{% block title %}Manage Connection Types - Social Tracker{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='manage_connection_types.css') }}">
+{% endblock %}
+
+{% block header_nav %}
+    <a href="{{ url_for('index') }}" class="nav-link"><i class="fas fa-arrow-left"></i> Dashboard</a>
+{% endblock %}
+
+{% block content %}
+<div class="manage-types-container">
+    <div class="form-container-box">
+        <h2><i class="fas fa-plus-circle"></i> Add New Type</h2>
         <form method="POST" action="{{ url_for('manage_connection_types') }}">
             <div class="form-group">
                 <label for="name">New Connection Type Name</label>
@@ -30,10 +21,10 @@
             </div>
             <button type="submit" class="btn btn-primary">Add New Type</button>
         </form>
+    </div>
 
-        <hr style="margin: 30px 0; border: 1px solid #f3f4f6;">
-
-        <h2>Existing Types</h2>
+    <div class="list-container-box">
+        <h2><i class="fas fa-sitemap"></i> Existing Types</h2>
         <table>
             <thead><tr><th>Name</th></tr></thead>
             <tbody>
@@ -45,5 +36,5 @@
             </tbody>
         </table>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

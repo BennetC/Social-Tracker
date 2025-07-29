@@ -6,10 +6,10 @@
 }
 
 .stat-card {
-    background: white;
+    background: var(--bg-secondary);
     padding: 25px;
     border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px var(--shadow-color);
     display: flex;
     align-items: center;
     gap: 20px;
@@ -28,10 +28,10 @@
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    color: white;
+    color: var(--text-inverted);
 }
 
-.stat-icon.total { background: linear-gradient(135deg, #667eea, #764ba2); }
+.stat-icon.total { background: var(--accent-gradient); }
 .stat-icon.active { background: linear-gradient(135deg, #10b981, #059669); }
 .stat-icon.pending { background: linear-gradient(135deg, #f59e0b, #d97706); }
 .stat-icon.high-priority { background: linear-gradient(135deg, #ef4444, #dc2626); }
@@ -39,20 +39,20 @@
 .stat-info h3 {
     font-size: 2rem;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--text-primary);
     margin-bottom: 5px;
 }
 
 .stat-info p {
-    color: #6b7280;
+    color: var(--text-muted);
     font-weight: 500;
 }
 
 .filters {
-    background: white;
+    background: var(--bg-secondary);
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px var(--shadow-color);
     margin-bottom: 30px;
     display: flex;
     gap: 15px;
@@ -69,15 +69,17 @@
 .filter-group label {
     font-size: 0.85rem;
     font-weight: 500;
-    color: #374151;
+    color: var(--text-secondary);
 }
 
 .filter-group select,
 .filter-group input {
     padding: 8px 12px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--border-secondary);
     border-radius: 8px;
     font-size: 0.9rem;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 .relationships-grid {
@@ -87,9 +89,9 @@
 }
 
 .relationship-card {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px var(--shadow-color);
     overflow: hidden;
     transition: all 0.3s ease;
     position: relative;
@@ -100,19 +102,19 @@
 
 .relationship-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 30px var(--shadow-color);
 }
 
 .relationship-header {
     padding: 20px;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--border-primary);
     position: relative;
 }
 
 .relationship-name {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--text-primary);
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -121,8 +123,8 @@
 
 .connection-type {
     display: inline-block;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
+    background: var(--accent-gradient);
+    color: var(--text-inverted);
     padding: 6px 12px;
     border-radius: 8px;
     font-size: 0.8rem;
@@ -132,7 +134,7 @@
 
 .interaction-level {
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--text-muted);
     margin-bottom: 15px;
 }
 
@@ -156,22 +158,22 @@
     align-items: center;
     gap: 6px;
     padding: 6px 10px;
-    background: #f3f4f6;
+    background: var(--bg-tertiary);
     border-radius: 8px;
     font-size: 0.8rem;
-    color: #374151;
+    color: var(--text-secondary);
     text-decoration: none;
     transition: all 0.3s ease;
 }
 
 .platform-badge:hover {
-    background: #e5e7eb;
+    background: var(--border-primary);
     transform: scale(1.05);
 }
 
 .platform-badge.primary {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
+    background: var(--bg-accent-hover);
+    color: var(--text-inverted);
     font-weight: bold;
 }
 
@@ -183,8 +185,8 @@
 }
 
 .tag {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
+    background: var(--accent-gradient);
+    color: var(--text-inverted);
     padding: 4px 8px;
     border-radius: 12px;
     font-size: 0.75rem;
@@ -192,7 +194,7 @@
 }
 
 .goal-text {
-    color: #4b5563;
+    color: var(--text-muted);
     font-size: 0.9rem;
     line-height: 1.5;
     margin-bottom: 15px;
@@ -204,7 +206,7 @@
     justify-content: space-between;
     align-items: center;
     font-size: 0.85rem;
-    color: #6b7280;
+    color: var(--text-muted);
 }
 
 .next-contact {
@@ -214,7 +216,7 @@
 }
 
 .next-contact.overdue {
-    color: #ef4444;
+    color: var(--color-danger-text);
     font-weight: 600;
 }
 
@@ -227,20 +229,20 @@
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: #6b7280;
+    color: var(--text-muted);
     grid-column: 1 / -1;
 }
 
 .empty-state i {
     font-size: 4rem;
     margin-bottom: 20px;
-    color: #d1d5db;
+    color: var(--border-secondary);
 }
 
 .empty-state h3 {
     font-size: 1.5rem;
     margin-bottom: 10px;
-    color: #374151;
+    color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {

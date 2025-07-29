@@ -5,14 +5,15 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
     min-height: 100vh;
+    color: var(--text-primary);
 }
 
 .header {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    color: white;
+    background: var(--bg-accent);
+    color: var(--text-inverted);
     padding: 20px 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
@@ -40,8 +41,32 @@ body {
     gap: 15px;
 }
 
+.theme-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--text-inverted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 10px;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .theme-toggle-btn .fa-sun { display: none; }
+[data-theme="dark"] .theme-toggle-btn .fa-moon { display: none; }
+
+
 .nav-link {
-    color: white;
+    color: var(--text-inverted);
     text-decoration: none;
     font-weight: 500;
     padding: 12px 20px;
@@ -58,8 +83,8 @@ body {
 }
 
 .add-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
+    background: var(--bg-accent-hover);
+    color: var(--text-inverted);
     text-decoration: none;
     padding: 12px 24px;
     border-radius: 10px;
@@ -91,8 +116,8 @@ body {
     font-weight: 500;
     margin-bottom: 10px;
 }
-.flash.success { background-color: #d1fae5; color: #065f46; }
-.flash.danger { background-color: #fee2e2; color: #991b1b; }
+.flash.success { background-color: var(--color-success-bg); color: var(--color-success-text); }
+.flash.danger { background-color: var(--color-danger-bg); color: var(--color-danger-text); }
 
 /* General Priority Badges */
 .priority-badge {
@@ -102,9 +127,9 @@ body {
     font-weight: 600;
     text-transform: uppercase;
 }
-.priority-badge.very-high, .priority-badge.high { background: #fee2e2; color: #991b1b; }
-.priority-badge.medium { background: #fef3c7; color: #92400e; }
-.priority-badge.low, .priority-badge.very-low { background: #d1fae5; color: #065f46; }
+.priority-badge.very-high, .priority-badge.high { background: var(--color-danger-bg); color: var(--color-danger-text); }
+.priority-badge.medium { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.priority-badge.low, .priority-badge.very-low { background: var(--color-success-bg); color: var(--color-success-text); }
 
 
 @media (max-width: 768px) {

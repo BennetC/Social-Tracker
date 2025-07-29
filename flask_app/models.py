@@ -2,10 +2,6 @@ import uuid
 from datetime import datetime, UTC
 from flask_app import db
 
-# --- DEFINE SHARED ENUM TYPES ONCE ---
-# The addition of create_type=False is the key to fixing the migration error.
-# This tells SQLAlchemy to use the existing ENUM type in the database
-# instead of trying to create a new one.
 priority_level_enum = db.Enum(
     'Very High', 'High', 'Medium', 'Low', 'Very Low',
     name='priority_level',
@@ -22,7 +18,6 @@ interaction_level_enum = db.Enum(
     create_type=False
 )
 
-# --- Association Tables ---
 event_participants = db.Table('event_participants',
     db.Column('event_id', db.Integer, db.ForeignKey('events.id'), primary_key=True),
     db.Column('relationship_id', db.Uuid(as_uuid=True), db.ForeignKey('relationships.id'), primary_key=True)
@@ -47,8 +42,6 @@ class RelationshipTag(db.Model):
     tag = db.relationship('Tag', back_populates='relationship_associations')
 
 
-# --- Main Models ---
-
 class Event(db.Model):
     __tablename__ = 'events'
     id = db.Column(db.Integer, primary_key=True)
@@ -60,7 +53,6 @@ class Event(db.Model):
     updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(UTC),
                            onupdate=lambda: datetime.now(UTC))
 
-    # Use the shared enum object
     priority = db.Column(priority_level_enum, nullable=False, default='Medium')
 
     participants = db.relationship('Relationship', secondary=event_participants, back_populates='events',
@@ -108,11 +100,9 @@ class Relationship(db.Model):
     follow_up_frequency = db.Column(db.String(50), nullable=True)
     next_follow_up_topic = db.Column(db.Text, nullable=True)
 
-    # Use the shared enum objects
     priority = db.Column(priority_level_enum, nullable=False, default='Medium')
     interaction_level = db.Column(interaction_level_enum, nullable=False, default='Not Contacted')
 
-    # Relationships
     connection_type_associations = db.relationship('RelationshipConnectionType', back_populates='relationship',
                                                    cascade="all, delete-orphan")
     tag_associations = db.relationship('RelationshipTag', back_populates='relationship', cascade="all, delete-orphan")
@@ -170,7 +160,6 @@ class InteractionHistory(db.Model):
     details = db.Column(db.Text, nullable=True)
     platform = db.Column(db.String(50), nullable=True)
 
-    # Use the shared enum object
     type = db.Column(interaction_type_enum, nullable=False)
 
     relationship = db.relationship('Relationship', back_populates='interactions')

@@ -4,7 +4,7 @@
 
 .page-title-container h1 {
     font-size: 2rem;
-    color: #2d3748;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -16,7 +16,7 @@
 
 .event-section h2 {
     font-size: 1.5rem;
-    color: #2d3748;
+    color: var(--text-secondary);
     margin-bottom: 20px;
     display: flex;
     align-items: center;
@@ -30,9 +30,9 @@
 }
 
 .event-card {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px var(--shadow-color);
     text-decoration: none;
     color: inherit;
     display: block;
@@ -41,11 +41,11 @@
 
 .event-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 30px var(--shadow-color);
 }
 
 .event-card.past {
-    background: #f8fafc;
+    background: var(--bg-tertiary);
     opacity: 0.8;
 }
 
@@ -55,7 +55,7 @@
 
 .event-header {
     padding: 15px 20px;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--border-primary);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -64,24 +64,13 @@
 .event-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary);
 }
-
-/* Note: .priority-badge is defined in shared_styles.css, but this provides a fallback */
-.priority-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-.priority-badge.very-high, .priority-badge.high { background: #fee2e2; color: #991b1b; }
-.priority-badge.medium { background: #fef3c7; color: #92400e; }
-.priority-badge.low, .priority-badge.very-low { background: #d1fae5; color: #065f46; }
 
 .event-body {
     padding: 20px;
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--text-muted);
 }
 
 .event-date,
@@ -93,6 +82,6 @@
 }
 
 .empty-state {
-    color: #6b7280;
+    color: var(--text-muted);
     font-style: italic;
 }

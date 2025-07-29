@@ -2,10 +2,10 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 15px;
-    background: #f8fafc;
+    background: var(--bg-tertiary);
     padding: 20px;
     border-radius: 10px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-primary);
     max-height: 250px;
     overflow-y: auto;
 }
@@ -24,4 +24,5 @@
 .checklist-item label {
     margin-bottom: 0;
     font-weight: 400;
+    color: var(--text-secondary);
 }

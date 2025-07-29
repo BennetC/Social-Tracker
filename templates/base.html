@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Social Tracker{% endblock %}</title>
+
+    <script>
+        // This inline script is run immediately to prevent a flash of the wrong theme.
+        (function() {
+            const theme = localStorage.getItem('socialTrackerTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='shared_styles.css') }}">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -15,6 +25,10 @@
         <div class="header-content">
             <h1><i class="fas fa-network-wired"></i> Social Tracker</h1>
             <div class="header-nav">
+                <button id="theme-toggle" class="theme-toggle-btn" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                    <i class="fas fa-sun"></i>
+                </button>
                 {% block header_nav %}
                 <a href="{{ url_for('view_events') }}" class="nav-link"><i class="fas fa-calendar-alt"></i> Event Calendar</a>
                 <a href="{{ url_for('add_relationship_form') }}" class="add-btn"><i class="fas fa-plus"></i> Add Relationship</a>
@@ -37,6 +51,23 @@
         {% block content %}{% endblock %}
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.getElementById('theme-toggle');
+            const htmlElement = document.documentElement;
+
+            toggleButton.addEventListener('click', function() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                if (currentTheme === 'dark') {
+                    htmlElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('socialTrackerTheme', 'light');
+                } else {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('socialTrackerTheme', 'dark');
+                }
+            });
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
