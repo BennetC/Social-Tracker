@@ -1,0 +1,141 @@
+.checklist-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.checklist-item.selected {
+    background-color: #ede9fe; /* Lighter purple */
+}
+
+.checklist-item input[type="checkbox"], .checklist-item input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.checklist-item label {
+    margin-bottom: 0;
+    font-weight: 400;
+}
+
+.checklist-item input[type="radio"] {
+    visibility: hidden;
+    margin-left: auto;
+}
+
+.checklist-item.selected input[type="radio"] {
+    visibility: visible;
+}
+
+.tags-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tags-input-wrapper input {
+    flex-grow: 1;
+}
+
+.browse-tags-btn {
+    background: #1e3c72;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+}
+
+/* --- FIX: Style for the search icon itself --- */
+.browse-tags-btn .fa-search {
+    font-size: 1.1rem;
+}
+
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+    min-height: 20px;
+}
+
+.tag {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.tag .remove-tag { cursor: pointer; font-weight: bold; }
+
+/* --- FIX: Styles for the star icon, including required font-weight --- */
+.tag .star-icon {
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    font-weight: 900; /* Required for Font Awesome 6 solid icons */
+    transition: color 0.2s ease;
+}
+.tag .star-icon.primary {
+    color: #facc15;
+}
+
+#tag-popup {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    z-index: 1000;
+    padding: 15px;
+    width: 95%;
+    top: 110%;
+    left: 0;
+}
+
+#tag-popup-header { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+.tag-popup-btn { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.tag-popup-btn.active { background: #667eea; color: white; }
+#tag-popup-list { display: flex; flex-wrap: wrap; gap: 8px; max-height: 150px; overflow-y: auto; }
+.popup-tag { background: #e5e7eb; padding: 5px 10px; border-radius: 15px; cursor: pointer; }
+
+.social-media-section { border: 2px dashed #e5e7eb; border-radius: 15px; padding: 25px; margin-top: 20px; background: #f8fafc; }
+.social-profile { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+.social-profile-main { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.social-profile-other { border-top: 1px dashed #e5e7eb; margin-top: 15px; padding-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.social-profile-footer { margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+.primary-checkbox { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+.primary-checkbox input[type="checkbox"] { width: auto; }
+.add-profile-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+.remove-profile-btn { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+
+@media (max-width: 768px) {
+    .social-profile-main, .social-profile-other, .checklist-container { grid-template-columns: 1fr; }
+}

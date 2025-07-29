@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Relationship - Social Tracker{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='form_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='relationship_form_styles.css') }}">
+{% endblock %}
+
+{% block header_nav %}{% endblock %}
+
+{% block content %}
+<div class="form-page-container">
+    <div class="form-header">
+        <h1><i class="fas fa-edit"></i> Edit Relationship</h1>
+        <p>Refine the details for <strong>{{ relationship.name }}</strong></p>
+    </div>
+
+    <div class="form-container">
+        <form id="relationshipForm" method="POST" action="{{ url_for('edit_relationship', relationship_id=relationship.id) }}">
+
+            <div class="form-section">
+                <h2 class="section-title"><i class="fas fa-user"></i> Basic Information</h2>
+                <div class="form-group"><label for="name">Full Name *</label><input type="text" id="name" name="name" required placeholder="Enter full name" value="{{ relationship.name or '' }}"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="priority">Priority Level</label>
+                        <select id="priority" name="priority">
+                            {% set priorities = ['Very High', 'High', 'Medium', 'Low', 'Very Low'] %}
+                            {% for p in priorities %}<option value="{{ p }}" {% if relationship.priority == p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="interaction_level">Interaction Level</label>
+                        <select id="interaction_level" name="interaction_level">
+                            {% set levels = ['Not Contacted', 'New', 'Active', 'Dormant'] %}
+                            {% for l in levels %}<option value="{{ l }}" {% if relationship.interaction_level == l %}selected{% endif %}>{{ l }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Connection Types (Choose 1 to 3)</h2>
+                <div id="connection-types-checklist" class="checklist-container">
+                    {% set selected_ct_ids = relationship.connection_type_associations|map(attribute='connection_type_id')|list %}
+                    {% set primary_ct_assoc = relationship.connection_type_associations|selectattr('is_primary')|first %}
+                    {% set primary_ct_id = primary_ct_assoc.connection_type_id if primary_ct_assoc else -1 %}
+                    {% for ctype in connection_types %}
+                    <div class="checklist-item" id="ctype-item-{{ ctype.id }}">
+                        <input type="checkbox" name="connection_type_ids" value="{{ ctype.id }}" id="ctype-check-{{ ctype.id }}" onclick="handleCheck(this)" {% if ctype.id in selected_ct_ids %}checked{% endif %}>
+                        <label for="ctype-check-{{ ctype.id }}">{{ ctype.name }}</label>
+                        <input type="radio" name="primary_connection_type" value="{{ ctype.id }}" title="Set as primary" {% if ctype.id == primary_ct_id %}checked{% endif %}>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Tags</h2>
+                <div class="form-group">
+                    <div class="tags-input-wrapper">
+                        <input type="text" id="tagsInput" placeholder="Type a tag and press Enter, or browse...">
+                        <button type="button" class="browse-tags-btn" id="browseTagsBtn"><i class="fas fa-search"></i></button>
+                    </div>
+                    <input type="hidden" name="tags" id="hidden-tags-input">
+                    <input type="hidden" name="primary_tag_name" id="hidden-primary-tag-input">
+                    <div id="tag-popup">
+                        <div id="tag-popup-header">
+                            <button type="button" class="tag-popup-btn active" data-type="popular">Most Popular</button>
+                            <button type="button" class="tag-popup-btn" data-type="recent">Most Recent</button>
+                        </div>
+                        <div id="tag-popup-list"></div>
+                    </div>
+                    <div class="tags-container" id="tagsContainer"></div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title"><i class="fas fa-target"></i> Goals & Strategy</h2>
+                <div class="form-group"><label for="goal">Relationship Goal</label><input type="text" id="goal" name="goal" placeholder="What do you hope to achieve?" value="{{ relationship.goal or '' }}"></div>
+                <div class="form-group"><label for="execution_strategy">Execution Strategy</label><textarea id="execution_strategy" name="execution_strategy" placeholder="How will you approach this relationship?">{{ relationship.execution_strategy or '' }}</textarea></div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="follow_up_frequency">Follow-up Cadence</label>
+                        <select id="follow_up_frequency" name="follow_up_frequency">
+                            <option value="" {% if not relationship.follow_up_frequency %}selected{% endif %}>None (Manual)</option>
+                            <option value="daily" {% if relationship.follow_up_frequency == 'daily' %}selected{% endif %}>Daily</option>
+                            <option value="weekly" {% if relationship.follow_up_frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+                            <option value="bi-weekly" {% if relationship.follow_up_frequency == 'bi-weekly' %}selected{% endif %}>Every 2 Weeks</option>
+                            <option value="monthly" {% if relationship.follow_up_frequency == 'monthly' %}selected{% endif %}>Monthly</option>
+                            <option value="quarterly" {% if relationship.follow_up_frequency == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label for="next_contact_due">Manual Due Date</label><input type="date" id="next_contact_due" name="next_contact_due" value="{{ relationship.next_contact_due.strftime('%Y-%m-%d') if relationship.next_contact_due else '' }}"></div>
+                </div>
+                 <div class="form-group">
+                    <label for="next_follow_up_topic">Next Follow-up Topic</label>
+                    <textarea id="next_follow_up_topic" name="next_follow_up_topic" placeholder="What should you talk about next?">{{ relationship.next_follow_up_topic or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title"><i class="fas fa-share-alt"></i> Social Media Profiles</h2>
+                <div class="social-media-section">
+                    <div id="socialProfiles"></div>
+                    <button type="button" class="add-profile-btn" onclick="addSocialProfile()">Add Social Profile</button>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title"><i class="fas fa-sticky-note"></i> Additional Notes</h2>
+                <div class="form-group"><textarea id="notes" name="notes" placeholder="Any additional information...">{{ relationship.notes or '' }}</textarea></div>
+            </div>
+
+            <div class="submit-section">
+                <button type="submit" class="btn-primary">Update Relationship</button>
+                <a href="{{ url_for('get_relationship', relationship_id=relationship.id) }}" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // --- Connection Types Logic ---
+    function handleCheck(checkbox) {
+        const item = checkbox.closest('.checklist-item');
+        item.classList.toggle('selected', checkbox.checked);
+        updatePrimaryRadios(item.parentElement);
+    }
+    function updatePrimaryRadios(container) {
+        const selectedItems = container.querySelectorAll('.checklist-item.selected');
+        const radios = container.querySelectorAll('input[type="radio"]');
+        let hasCheckedPrimary = false;
+        radios.forEach(radio => {
+            const parentItem = radio.closest('.checklist-item');
+            if (parentItem.classList.contains('selected')) {
+                if (radio.checked) hasCheckedPrimary = true;
+            } else {
+                radio.checked = false;
+            }
+        });
+        if (selectedItems.length > 0 && !hasCheckedPrimary) {
+            selectedItems[0].querySelector('input[type="radio"]').checked = true;
+        }
+    }
+    const ctypeChecklist = document.getElementById('connection-types-checklist');
+    const ctypeCheckboxes = ctypeChecklist.querySelectorAll('input[type="checkbox"]');
+    ctypeCheckboxes.forEach(cb => {
+        cb.addEventListener('click', () => {
+            if (ctypeChecklist.querySelectorAll('input[type="checkbox"]:checked').length > 3) {
+                alert('You can select a maximum of 3 connection types.');
+                cb.checked = false;
+                handleCheck(cb);
+            }
+        });
+    });
+
+    // --- Hybrid Tags Script ---
+    let selectedTags = [];
+    const tagsInput = document.getElementById('tagsInput');
+    const tagsContainer = document.getElementById('tagsContainer');
+    const hiddenTagsInput = document.getElementById('hidden-tags-input');
+    const hiddenPrimaryTagInput = document.getElementById('hidden-primary-tag-input');
+    const browseTagsBtn = document.getElementById('browseTagsBtn');
+    const tagPopup = document.getElementById('tag-popup');
+
+    tagsInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const tagName = e.target.value.trim();
+            if (tagName) {
+                addTag(tagName);
+                e.target.value = '';
+            }
+        }
+    });
+    function addTag(tagName) {
+        const name = tagName.toLowerCase();
+        if (name && !selectedTags.some(t => t.name === name)) {
+            const isFirstTag = selectedTags.length === 0;
+            selectedTags.push({ name: name, isPrimary: isFirstTag });
+            renderTags();
+        }
+        tagPopup.style.display = 'none';
+    }
+    function removeTag(tagName) {
+        const wasPrimary = selectedTags.find(t => t.name === tagName)?.isPrimary;
+        selectedTags = selectedTags.filter(t => t.name !== tagName);
+        if (wasPrimary && selectedTags.length > 0) {
+            selectedTags[0].isPrimary = true;
+        }
+        renderTags();
+    }
+    function setPrimaryTag(tagName) {
+        selectedTags.forEach(t => t.isPrimary = (t.name === tagName));
+        renderTags();
+    }
+    function renderTags() {
+        tagsContainer.innerHTML = '';
+        selectedTags.forEach(tag => {
+            const tagEl = document.createElement('span');
+            tagEl.className = 'tag';
+            tagEl.innerHTML = `<i class="fas fa-star star-icon ${tag.isPrimary ? 'primary' : ''}" onclick="setPrimaryTag('${tag.name}')"></i> ${tag.name} <span class="remove-tag" onclick="removeTag('${tag.name}')">×</span>`;
+            tagsContainer.appendChild(tagEl);
+        });
+        updateHiddenTagInputs();
+    }
+    function updateHiddenTagInputs() {
+        hiddenTagsInput.value = selectedTags.map(t => t.name).join(',');
+        const primaryTag = selectedTags.find(t => t.isPrimary);
+        hiddenPrimaryTagInput.value = primaryTag ? primaryTag.name : '';
+    }
+    browseTagsBtn.addEventListener('click', () => {
+        const isVisible = tagPopup.style.display === 'block';
+        tagPopup.style.display = isVisible ? 'none' : 'block';
+        if (!isVisible) fetchTags(document.querySelector('.tag-popup-btn.active').dataset.type);
+    });
+    document.addEventListener('click', e => { if (!browseTagsBtn.contains(e.target) && !tagPopup.contains(e.target) && !e.target.classList.contains('popup-tag')) tagPopup.style.display = 'none'; });
+    document.querySelectorAll('.tag-popup-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelector('.tag-popup-btn.active').classList.remove('active');
+            btn.classList.add('active');
+            fetchTags(btn.dataset.type);
+        });
+    });
+    async function fetchTags(type) {
+        const list = document.getElementById('tag-popup-list');
+        list.innerHTML = 'Loading...';
+        const response = await fetch(`/api/tags/${type}`);
+        const data = await response.json();
+        list.innerHTML = data.length ? data.map(tag => `<span class="popup-tag" onclick="addTag('${tag.name}')">${tag.name}</span>`).join('') : 'No tags found.';
+    }
+
+    // --- Social Media Script ---
+    let profileCount = 0;
+    const platformsData = {{ platforms_data|tojson|safe }};
+    function addSocialProfile(profileData = null) {
+        profileCount++;
+        const profileHtml = `<div class="social-profile" id="profile-${profileCount}"><div class="social-profile-main"><div class="form-group"><label for="platform-${profileCount}">Platform *</label><select id="platform-${profileCount}" name="platform[]" onchange="updateSocialProfileInputs(this, ${profileCount})"><option value="">Select Platform</option>${platformsData.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}<option value="Other">Other (New Platform)</option></select></div><div class="form-group" id="handle-group-${profileCount}" style="display: none;"><label>Handle/Username *</label><input type="text" name="handle[]" placeholder="@username"></div><div class="form-group" id="link-group-${profileCount}" style="display: none;"><label>Profile Link *</label><input type="url" name="profile_link[]" placeholder="https://..."></div></div><div class="social-profile-other" id="other-platform-group-${profileCount}" style="display: none;"><div class="form-group"><label>New Platform Name *</label><input type="text" name="custom_platform_name[]" disabled></div><div class="form-group"><label>Required Fields *</label><select name="custom_platform_rule[]" disabled><option value="both">Username and Link</option><option value="handle_only">Username Only</option><option value="link_only">Link Only</option></select></div></div><div class="social-profile-footer"><div class="primary-checkbox"><input type="checkbox" name="is_primary" value="${profileCount}"><label>Is Primary</label></div><button type="button" class="remove-profile-btn" onclick="removeSocialProfile(${profileCount})">Remove</button></div></div>`;
+        document.getElementById('socialProfiles').insertAdjacentHTML('beforeend', profileHtml);
+
+        if (profileData) {
+            const platformSelect = document.getElementById(`platform-${profileCount}`);
+            platformSelect.value = profileData.platform.name;
+            updateSocialProfileInputs(platformSelect, profileCount);
+
+            const handleGroup = document.getElementById(`handle-group-${profileCount}`);
+            const linkGroup = document.getElementById(`link-group-${profileCount}`);
+            if (handleGroup.style.display !== 'none' && profileData.handle) handleGroup.querySelector('input').value = profileData.handle;
+            if (linkGroup.style.display !== 'none' && profileData.profile_link) linkGroup.querySelector('input').value = profileData.profile_link;
+
+            const primaryCheckbox = document.querySelector(`#profile-${profileCount} .primary-checkbox input`);
+            if (profileData.is_primary) primaryCheckbox.checked = true;
+        }
+    }
+    function updateSocialProfileInputs(selectElement, id) {
+        const platformName = selectElement.value, handleGroup = document.getElementById(`handle-group-${id}`), handleInput = handleGroup.querySelector('input'), linkGroup = document.getElementById(`link-group-${id}`), linkInput = linkGroup.querySelector('input'), otherGroup = document.getElementById(`other-platform-group-${id}`), otherNameInput = otherGroup.querySelector('input[name="custom_platform_name[]"]'), otherRuleSelect = otherGroup.querySelector('select[name="custom_platform_rule[]"]'), platformConfig = platformsData.find(p => p.name === platformName);
+        let showHandle = false, showLink = false;
+        handleInput.value = '', linkInput.value = '', otherNameInput.value = '';
+        if (platformName === "Other") {
+            otherGroup.style.display = 'grid', otherNameInput.disabled = false, otherNameInput.required = true, otherRuleSelect.disabled = false;
+            const updateOtherRules = () => {
+                const rule = otherRuleSelect.value;
+                showHandle = rule === 'both' || rule === 'handle_only', showLink = rule === 'both' || rule === 'link_only';
+                handleGroup.style.display = showHandle ? 'grid' : 'none', handleInput.disabled = !showHandle, handleInput.required = showHandle;
+                linkGroup.style.display = showLink ? 'grid' : 'none', linkInput.disabled = !showLink, linkInput.required = showLink;
+            };
+            otherRuleSelect.onchange = updateOtherRules, updateOtherRules();
+        } else {
+            otherGroup.style.display = 'none', otherNameInput.disabled = true, otherNameInput.required = false, otherRuleSelect.disabled = true, otherRuleSelect.onchange = null;
+            if (platformConfig) showHandle = platformConfig.requires_handle, showLink = platformConfig.requires_link;
+            handleGroup.style.display = showHandle ? 'grid' : 'none', handleInput.disabled = !showHandle, handleInput.required = showHandle;
+            linkGroup.style.display = showLink ? 'grid' : 'none', linkInput.disabled = !showLink, linkInput.required = showLink;
+        }
+    }
+    function removeSocialProfile(id) { document.getElementById(`profile-${id}`).remove(); }
+
+    // --- Initialization on Page Load ---
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('next_contact_due').min = new Date().toISOString().split('T')[0];
+
+        // Init Connection Types visuals
+        document.querySelectorAll('#connection-types-checklist input[type="checkbox"]:checked').forEach(cb => {
+            cb.closest('.checklist-item').classList.add('selected');
+        });
+        updatePrimaryRadios(document.getElementById('connection-types-checklist'));
+
+        // Init Tags from data passed by Flask
+        const tagAssociations = {{ tag_associations_data|tojson|safe }};
+        tagAssociations.forEach(assoc => addTag(assoc.tag.name));
+        const primaryTagAssoc = tagAssociations.find(a => a.is_primary);
+        if (primaryTagAssoc) {
+            setPrimaryTag(primaryTagAssoc.tag.name);
+        } else if (tagAssociations.length > 0) {
+            setPrimaryTag(tagAssociations[0].tag.name);
+        }
+
+        // Init Social Media profiles from data passed by Flask
+        const socialMediaProfiles = {{ social_media_data|tojson|safe }};
+        if (socialMediaProfiles.length > 0) {
+            socialMediaProfiles.forEach(profile => addSocialProfile(profile));
+        } else {
+            addSocialProfile();
+        }
+    });
+</script>
+{% endblock %}

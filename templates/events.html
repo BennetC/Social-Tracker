@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Event Calendar - Social Tracker{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='events.css') }}">
+{% endblock %}
+
+{% block header_nav %}
+    {# Override the default navigation to provide a link back to the dashboard #}
+    <a href="{{ url_for('index') }}" class="nav-link"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    <a href="{{ url_for('add_event') }}" class="add-btn"><i class="fas fa-plus"></i> Add Event</a>
+{% endblock %}
+
+{% block content %}
+    {# The main header is now handled by base.html, we just need the title #}
+    <div class="page-title-container">
+        <h1><i class="fas fa-calendar-check"></i> Event Calendar</h1>
+    </div>
+
+    <div class="event-section">
+        <h2><i class="fas fa-hourglass-start"></i> Upcoming Events</h2>
+        <div class="events-grid">
+            {% for event in upcoming_events %}
+            <a href="{{ url_for('get_event', event_id=event.id) }}" class="event-card">
+                <div class="event-header">
+                    <span class="event-title">{{ event.title }}</span>
+                    <span class="priority-badge {{ event.priority|lower|replace(' ', '-') }}">{{ event.priority }}</span>
+                </div>
+                <div class="event-body">
+                    <div class="event-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        {% if event.start_date and event.end_date %}
+                            {{ event.start_date.strftime('%b %d') }} - {{ event.end_date.strftime('%b %d, %Y') }}
+                        {% elif event.start_date %}
+                            On {{ event.start_date.strftime('%b %d, %Y') }}
+                        {% else %}
+                            Date TBD
+                        {% endif %}
+                    </div>
+                    <div class="event-participants">
+                        <i class="fas fa-users"></i>
+                        <span>{{ event.participants.count() }} Participant(s)</span>
+                    </div>
+                </div>
+            </a>
+            {% else %}
+            <p class="empty-state">No upcoming events. Time to plan something!</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="event-section">
+        <h2><i class="fas fa-history"></i> Past Events</h2>
+        <div class="events-grid">
+             {% for event in past_events %}
+            <a href="{{ url_for('get_event', event_id=event.id) }}" class="event-card past">
+                <div class="event-header">
+                    <span class="event-title">{{ event.title }}</span>
+                    <span class="priority-badge {{ event.priority|lower|replace(' ', '-') }}">{{ event.priority }}</span>
+                </div>
+                <div class="event-body">
+                    <div class="event-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        {% if event.start_date %}
+                            {{ event.start_date.strftime('%b %d, %Y') }}
+                        {% else %}
+                            Date Unknown
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% else %}
+            <p class="empty-state">No past events recorded yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

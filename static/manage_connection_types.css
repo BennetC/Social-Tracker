@@ -1,0 +1,16 @@
+body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
+.header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 20px 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); }
+.header-content { max-width: 800px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { font-size: 2rem; }
+.container { max-width: 800px; margin: 30px auto; padding: 30px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-weight: 500; margin-bottom: 8px; }
+.form-group input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; }
+.btn { padding: 12px 25px; border: none; border-radius: 10px; color: white; cursor: pointer; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); }
+.back-link { color: white; text-decoration: none; }
+table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+th, td { text-align: left; padding: 15px; border-bottom: 1px solid #e5e7eb; }
+.flash { padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+.flash.success { background-color: #d1fae5; color: #065f46; }
+.flash.danger { background-color: #fee2e2; color: #991b1b; }

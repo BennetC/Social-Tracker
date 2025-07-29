@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaction Details - Social Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='interaction_detail.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-comment-dots"></i> Interaction Details</h1>
+            <p>For your relationship with <strong>{{ interaction.relationship.name }}</strong></p>
+        </div>
+
+        <div class="details-container">
+             {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="interaction-card">
+                <div class="interaction-header">
+                    <h2>{{ interaction.title }}</h2>
+                </div>
+                <div class="interaction-meta">
+                    <span><i class="fas fa-calendar-alt"></i> {{ interaction.date.strftime('%B %d, %Y at %I:%M %p') }} UTC</span>
+                    <span><i class="fas fa-tag"></i> {{ interaction.type.replace('-', ' ')|title }}</span>
+                    {% if interaction.platform %}
+                    <span><i class="fas fa-map-marker-alt"></i> {{ interaction.platform }}</span>
+                    {% endif %}
+                </div>
+                <div class="interaction-body">
+                    <h3>Details</h3>
+                    <div class="details-content">
+                        {{ interaction.details|safe if interaction.details else 'No details were provided for this interaction.' }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <a href="{{ url_for('edit_interaction', interaction_id=interaction.id) }}" class="btn btn-edit">
+                    <i class="fas fa-pencil-alt"></i> Edit Interaction
+                </a>
+                <a href="{{ url_for('get_relationship', relationship_id=interaction.relationship_id) }}#interaction-history" class="btn">
+                    <i class="fas fa-arrow-left"></i> Back to Relationship
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Event - Social Tracker{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='form_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='add_event.css') }}">
+{% endblock %}
+
+{% block header_nav %}{% endblock %}
+
+{% block content %}
+<div class="form-page-container">
+    <div class="form-header">
+        <h1><i class="fas fa-edit"></i> Edit Event</h1>
+        <p>Refining the details for: {{ event.title }}</p>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" action="{{ url_for('edit_event', event_id=event.id) }}">
+            <div class="form-section">
+                <h2 class="section-title">Event Details</h2>
+                <div class="form-group">
+                    <label for="title">Event Title *</label>
+                    <input type="text" id="title" name="title" required value="{{ event.title or '' }}">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="start_date">Start Date</label>
+                        <input type="date" id="start_date" name="start_date" value="{{ event.start_date.strftime('%Y-%m-%d') if event.start_date else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="end_date">End Date</label>
+                        <input type="date" id="end_date" name="end_date" value="{{ event.end_date.strftime('%Y-%m-%d') if event.end_date else '' }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="priority">Priority</label>
+                    <select id="priority" name="priority">
+                        {% set priorities = ['Very High', 'High', 'Medium', 'Low', 'Very Low'] %}
+                        {% for p in priorities %}
+                        <option value="{{ p }}" {% if event.priority == p %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="details">Additional Details</label>
+                    <textarea id="details" name="details" rows="5" placeholder="Describe the event, goals, locations, etc.">{{ event.details or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Participants</h2>
+                <div class="checklist-container">
+                    {% for rel in relationships %}
+                    <div class="checklist-item">
+                        <input type="checkbox" name="participant_ids" value="{{ rel.id }}" id="rel-{{ rel.id }}" {% if rel.id in participant_ids %}checked{% endif %}>
+                        <label for="rel-{{ rel.id }}">{{ rel.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="submit-section">
+                <button type="submit" class="btn-primary">Save Changes</button>
+                <a href="{{ url_for('get_event', event_id=event.id) }}" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} - Event Details{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='event_detail.css') }}">
+{% endblock %}
+
+{% block header_nav %}
+    {# This is a detail page, so we clear the main header navigation to keep the view focused. #}
+{% endblock %}
+
+{% block content %}
+<div class="event-detail-container">
+    <div class="page-header">
+        <h1><i class="fas fa-calendar-day"></i> {{ event.title }}</h1>
+    </div>
+
+    <div class="details-content-wrapper">
+        <div class="info-grid">
+            <div class="info-card">
+                <label>Timeframe</label>
+                <div class="value">
+                    <i class="fas fa-clock"></i>
+                    {% if event.start_date and event.end_date and event.start_date.date() != event.end_date.date() %}
+                        {{ event.start_date.strftime('%b %d, %Y') }} to {{ event.end_date.strftime('%b %d, %Y') }}
+                    {% elif event.start_date %}
+                        On {{ event.start_date.strftime('%b %d, %Y') }}
+                    {% else %}
+                        Date to be determined
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-card">
+                <label>Priority</label>
+                <div class="value">
+                    {# This priority badge style is now globally available via shared_styles.css #}
+                    <span class="priority-badge {{ event.priority|lower|replace(' ', '-') }}">{{ event.priority }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h2 class="section-title">Details</h2>
+            <div class="text-block">
+                {{ event.details|safe if event.details else 'No details provided.' }}
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h2 class="section-title">Participants ({{ event.participants.count() }})</h2>
+            <div class="participants-list">
+                {% for person in event.participants %}
+                <a href="{{ url_for('get_relationship', relationship_id=person.id) }}" class="participant">
+                    <i class="fas fa-user"></i> {{ person.name }}
+                </a>
+                {% else %}
+                <p>No participants are linked to this event.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="{{ url_for('edit_event', event_id=event.id) }}" class="btn btn-edit">
+                <i class="fas fa-pencil-alt"></i> Edit Event
+            </a>
+            <form action="{{ url_for('delete_event', event_id=event.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this event?');" style="display: inline;">
+                <button type="submit" class="btn btn-delete">
+                    <i class="fas fa-trash"></i> Delete Event
+                </button>
+            </form>
+            <a href="{{ url_for('view_events') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Calendar
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

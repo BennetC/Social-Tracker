@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}{{ relationship.name }} - Relationship Details{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='relationship_detail.css') }}">
+{% endblock %}
+
+{# We can override the main header navigation to keep this page focused #}
+{% block header_nav %}{% endblock %}
+
+{% block content %}
+<div class="detail-page-wrapper">
+    <!-- The custom header for this page, now using a unique class -->
+    <div class="detail-header">
+        <div class="header-main">
+            <h1>
+                <i class="fas fa-user-circle"></i>
+                {{ relationship.name }}
+            </h1>
+            <div class="connection-type">{{ relationship.connection_type }}</div>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('edit_relationship', relationship_id=relationship.id) }}" class="btn btn-edit">
+                <i class="fas fa-pencil-alt"></i>
+                Edit
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="details-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <!-- Basic Info Grid -->
+        <div class="detail-section">
+            <div class="info-grid">
+                <div class="info-card">
+                    <label>Priority</label>
+                    <div class="value">
+                        <span class="priority-badge {{ relationship.priority|lower|replace(' ', '-') }}">{{ relationship.priority }}</span>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <label>Interaction Level</label>
+                    <div class="value interaction-level {{ relationship.interaction_level|lower|replace(' ', '-') }}">
+                       {{ relationship.interaction_level }}
+                    </div>
+                </div>
+                 <div class="info-card">
+                    <label>Next Contact Due</label>
+                    <div class="value">
+                        <i class="fas fa-calendar-alt"></i>
+                        {% if relationship.next_contact_due %}
+                            {{ relationship.next_contact_due.strftime('%b %d, %Y') }}
+                        {% else %}
+                            Not Scheduled
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="info-card">
+                    <label>Last Contacted</label>
+                    <div class="value">
+                        <i class="fas fa-history"></i>
+                        {% if relationship.last_contacted %}
+                            {{ relationship.last_contacted.strftime('%b %d, %Y') }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Goals & Strategy -->
+        <div class="detail-section">
+            <h2 class="section-title">
+                <i class="fas fa-target"></i>
+                Goals & Strategy
+            </h2>
+            {% if relationship.goal %}
+            <div class="info-card" style="margin-bottom: 15px;">
+                <label>Relationship Goal</label>
+                <div class="text-block goal">"{{ relationship.goal }}"</div>
+            </div>
+            {% endif %}
+             {% if relationship.next_follow_up_topic %}
+            <div class="info-card" style="margin-bottom: 15px;">
+                <label>Next Follow-up Topic</label>
+                <div class="text-block topic-block">{{ relationship.next_follow_up_topic }}</div>
+            </div>
+            {% endif %}
+            {% if relationship.execution_strategy %}
+            <div class="info-card">
+                <label>Execution Strategy</label>
+                <div class="text-block">{{ relationship.execution_strategy }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Interaction Context -->
+        <div class="detail-section" id="interaction-history">
+            <h2 class="section-title"><i class="fas fa-comments"></i> Interaction Context</h2>
+            <div class="interaction-container">
+                <!-- Form to add new interaction -->
+                <div class="interaction-form-container">
+                    <h3>Log New Interaction</h3>
+                    <form action="{{ url_for('add_interaction', relationship_id=relationship.id) }}" method="POST">
+                        <div class="form-group">
+                            <label for="interaction-title">Title *</label>
+                            <input type="text" id="interaction-title" name="title" required placeholder="e.g., 'Coffee meeting about Project X'">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="interaction-type">Type</label>
+                                <select id="interaction-type" name="type">
+                                    <option value="comment">Comment</option>
+                                    <option value="DM">DM</option>
+                                    <option value="email">Email</option>
+                                    <option value="meeting" selected>Meeting</option>
+                                    <option value="call">Call</option>
+                                    <option value="follow-up">Follow-up</option>
+                                    <option value="help">Help Provided</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="interaction-platform">Platform/Method</label>
+                                <input type="text" id="interaction-platform" name="platform" placeholder="e.g., Twitter, In-Person">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="interaction-details">Details</label>
+                            <textarea id="interaction-details" name="details" rows="4" placeholder="What was discussed? What was the outcome?"></textarea>
+                        </div>
+                        <button type="submit" class="btn-log-interaction"><i class="fas fa-plus"></i> Log Interaction</button>
+                    </form>
+                </div>
+
+                <!-- List of past interactions -->
+                <div class="history-list-container">
+                    <h3>History</h3>
+                    <div class="history-list">
+                        {% if relationship.interactions %}
+                            {% for interaction in relationship.interactions %}
+                            <div class="history-item-new">
+                                <div class="history-item-main-link">
+                                    <a href="{{ url_for('get_interaction', interaction_id=interaction.id) }}" title="View Details">
+                                        <i class="far fa-comment-dots"></i>
+                                        <span>{{ interaction.title }}</span>
+                                    </a>
+                                    <span class="history-item-date">{{ interaction.date.strftime('%b %d, %Y') }}</span>
+                                </div>
+                                <div class="history-item-actions">
+                                    <a href="{{ url_for('edit_interaction', interaction_id=interaction.id) }}" class="btn-action edit" title="Edit">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </a>
+                                    <form action="{{ url_for('delete_interaction', interaction_id=interaction.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this interaction?');" style="display: inline;">
+                                        <button type="submit" class="btn-action delete" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-history">No interactions have been logged yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Media Profiles, Tags, Notes, etc. -->
+        <!-- ... (rest of the file remains the same) ... -->
+    </div>
+</div>
+{% endblock %}

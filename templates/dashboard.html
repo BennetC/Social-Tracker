@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Social Tracker Dashboard{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+    <!-- Stats Section -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon total"><i class="fas fa-users"></i></div>
+            <div class="stat-info"><h3 id="totalContacts">{{ relationships|length }}</h3><p>Total Relationships</p></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon active"><i class="fas fa-comments"></i></div>
+            <div class="stat-info"><h3 id="activeContacts">{{ relationships|selectattr("interaction_level", "equalto", "Active")|list|length }}</h3><p>Active Connections</p></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon pending"><i class="fas fa-clock"></i></div>
+            <div class="stat-info"><h3 id="pendingContacts">0</h3><p>Follow-ups Due</p></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon high-priority"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="stat-info"><h3 id="highPriority">{{ relationships|selectattr("priority", "in", ["High", "Very High"])|list|length }}</h3><p>High Priority</p></div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <div class="filter-group"><label>Priority</label><select id="priorityFilter"><option value="">All Priorities</option><option value="Very High">Very High</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Very Low">Very Low</option></select></div>
+        <div class="filter-group"><label>Connection Type</label><select id="connectionFilter"><option value="">All Types</option>{% set ctypes = relationships|map(attribute='connection_type')|unique|sort %}{% for c in ctypes %}<option value="{{c}}">{{c}}</option>{% endfor %}</select></div>
+        <div class="filter-group"><label>Interaction Level</label><select id="interactionFilter"><option value="">All Levels</option><option value="Not Contacted">Not Contacted</option><option value="New">New</option><option value="Active">Active</option><option value="Dormant">Dormant</option></select></div>
+        <div class="filter-group"><label>Search</label><input type="text" id="searchFilter" placeholder="Search names or tags..."></div>
+    </div>
+
+    <!-- Relationships Grid -->
+    <div class="relationships-grid" id="relationshipsGrid">
+        {% if relationships %}
+            {% for r in relationships %}
+            <div class="relationship-card" data-href="{{ url_for('get_relationship', relationship_id=r.id) }}" data-priority="{{ r.priority|lower|replace(' ', '-') }}" data-connection="{{ r.connection_type }}" data-interaction="{{ r.interaction_level|lower|replace(' ', '-') }}" data-search="{{ r.name|lower }} {% for tag_assoc in r.tag_associations %}{{ tag_assoc.tag.name|lower }} {% endfor %}">
+                <div class="relationship-header">
+                    <div class="relationship-name">{{ r.name }}<span class="priority-badge {{ r.priority|lower|replace(' ', '-') }}">{{ r.priority }}</span></div>
+                    <div class="connection-type">{{ r.connection_type }}</div>
+                    <div class="interaction-level {{ r.interaction_level|lower|replace(' ', '-') }}">{{ r.interaction_level }} Connection</div>
+                </div>
+                <div class="relationship-body">
+                    {% if r.social_media %}
+                    <div class="social-platforms">
+                        {% for social in r.social_media %}
+                            {% set platform_name = social.platform.name|lower %}
+                            {% set base_urls = config.PLATFORM_BASE_URLS %}
+                            {% set generated_url = '' %}
+                            {% if social.handle and base_urls.get(social.platform.name) %}
+                                {% if social.platform.name == 'Email' %}
+                                    {% set generated_url = base_urls[social.platform.name] ~ social.handle %}
+                                {% else %}
+                                    {% set generated_url = base_urls[social.platform.name] ~ social.handle|replace('@', '') %}
+                                {% endif %}
+                            {% endif %}
+                            {% set final_url = social.profile_link or generated_url %}
+
+                            <a href="{{ final_url if final_url else '#' }}" class="platform-badge {{ 'primary' if social.is_primary else '' }} {{ 'disabled' if not final_url }}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
+                                {% if 'twitter' in platform_name %}<i class="fab fa-twitter"></i>{% elif 'linkedin' in platform_name %}<i class="fab fa-linkedin"></i>{% elif 'github' in platform_name %}<i class="fab fa-github"></i>{% elif 'instagram' in platform_name %}<i class="fab fa-instagram"></i>{% elif 'discord' in platform_name %}<i class="fab fa-discord"></i>{% elif 'telegram' in platform_name %}<i class="fab fa-telegram"></i>{% elif 'tiktok' in platform_name %}<i class="fab fa-tiktok"></i>{% elif 'email' in platform_name %}<i class="fas fa-envelope"></i>{% elif 'website' in platform_name %}<i class="fas fa-globe"></i>{% else %}<i class="fas fa-link"></i>{% endif %}
+                                <span>{{ social.handle or social.platform.name }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if r.tag_associations %}
+                    <div class="tags">
+                        {% for assoc in r.tag_associations %}
+                        <span class="tag">{{ assoc.tag.name.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if r.goal %}<div class="goal-text">"{{ r.goal }}"</div>{% endif %}
+                    <div class="relationship-footer">
+                        <div class="last-contact"><i class="fas fa-history"></i> {% if r.last_contacted %}{{ r.last_contacted.strftime('%b %d, %Y') }}{% else %}Never Contacted{% endif %}</div>
+                        <div class="next-contact {{ 'overdue' if r.next_contact_due and r.next_contact_due < now }}" data-due="{{ r.next_contact_due.isoformat() if r.next_contact_due else '' }}"><i class="fas fa-calendar-alt"></i> {% if r.next_contact_due %}{{ r.next_contact_due.strftime('%b %d, %Y') }}{% else %}Not Set{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <h3>No Relationships Yet</h3>
+            <p>Start building your network by adding your first relationship!</p>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Logic for Filters ---
+        const cards = document.querySelectorAll('.relationship-card');
+        const filters = {
+            priority: document.getElementById('priorityFilter'),
+            connection: document.getElementById('connectionFilter'),
+            interaction: document.getElementById('interactionFilter'),
+            search: document.getElementById('searchFilter')
+        };
+
+        function filterCards() {
+            const filterValues = {
+                priority: filters.priority.value.toLowerCase().replace(' ', '-'),
+                connection: filters.connection.value,
+                interaction: filters.interaction.value.toLowerCase().replace(' ', '-'),
+                search: filters.search.value.toLowerCase()
+            };
+
+            cards.forEach(card => {
+                const cardData = {
+                    priority: card.dataset.priority,
+                    connection: card.dataset.connection,
+                    interaction: card.dataset.interaction,
+                    search: card.dataset.search
+                };
+
+                const matches = (
+                    (!filterValues.priority || cardData.priority === filterValues.priority) &&
+                    (!filterValues.connection || cardData.connection === filterValues.connection) &&
+                    (!filterValues.interaction || cardData.interaction === filterValues.interaction) &&
+                    (!filterValues.search || cardData.search.includes(filterValues.search))
+                );
+
+                card.style.display = matches ? 'block' : 'none';
+            });
+        }
+
+        Object.values(filters).forEach(filter => {
+            filter.addEventListener('change', filterCards);
+            if (filter.type === 'text') {
+                filter.addEventListener('input', filterCards);
+            }
+        });
+
+        // --- Logic for Pending Contacts ---
+        const now = new Date();
+        let pendingCount = 0;
+        document.querySelectorAll('.next-contact').forEach(element => {
+            const dueDateStr = element.dataset.due;
+            if (dueDateStr) {
+                const dueDate = new Date(dueDateStr);
+                if (dueDate < now) {
+                    pendingCount++;
+                }
+            }
+        });
+        document.getElementById('pendingContacts').textContent = pendingCount;
+
+        // --- Clickable Cards ---
+        document.querySelectorAll('.relationship-card').forEach(card => {
+            card.addEventListener('click', function(event) {
+                // Stop navigation if a link or a button inside the card was the actual click target.
+                if (event.target.closest('a, button')) {
+                    return;
+                }
+                const href = this.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

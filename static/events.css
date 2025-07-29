@@ -1,0 +1,98 @@
+.page-title-container {
+    margin-bottom: 30px;
+}
+
+.page-title-container h1 {
+    font-size: 2rem;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.event-section {
+    margin-bottom: 40px;
+}
+
+.event-section h2 {
+    font-size: 1.5rem;
+    color: #2d3748;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.event-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.event-card.past {
+    background: #f8fafc;
+    opacity: 0.8;
+}
+
+.event-card.past:hover {
+    opacity: 1;
+}
+
+.event-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.event-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Note: .priority-badge is defined in shared_styles.css, but this provides a fallback */
+.priority-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.priority-badge.very-high, .priority-badge.high { background: #fee2e2; color: #991b1b; }
+.priority-badge.medium { background: #fef3c7; color: #92400e; }
+.priority-badge.low, .priority-badge.very-low { background: #d1fae5; color: #065f46; }
+
+.event-body {
+    padding: 20px;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.event-date,
+.event-participants {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.empty-state {
+    color: #6b7280;
+    font-style: italic;
+}
