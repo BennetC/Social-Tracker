@@ -81,23 +81,16 @@
                 <div class="form-group"><label for="goal">Relationship Goal</label><input type="text" id="goal" name="goal" placeholder="What do you hope to achieve?" value="{{ relationship.goal or '' }}"></div>
                 <div class="form-group"><label for="execution_strategy">Execution Strategy</label><textarea id="execution_strategy" name="execution_strategy" placeholder="How will you approach this relationship?">{{ relationship.execution_strategy or '' }}</textarea></div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="follow_up_frequency">Follow-up Cadence</label>
-                        <select id="follow_up_frequency" name="follow_up_frequency">
-                            <option value="" {% if not relationship.follow_up_frequency %}selected{% endif %}>None (Manual)</option>
-                            <option value="daily" {% if relationship.follow_up_frequency == 'daily' %}selected{% endif %}>Daily</option>
-                            <option value="weekly" {% if relationship.follow_up_frequency == 'weekly' %}selected{% endif %}>Weekly</option>
-                            <option value="bi-weekly" {% if relationship.follow_up_frequency == 'bi-weekly' %}selected{% endif %}>Every 2 Weeks</option>
-                            <option value="monthly" {% if relationship.follow_up_frequency == 'monthly' %}selected{% endif %}>Monthly</option>
-                            <option value="quarterly" {% if relationship.follow_up_frequency == 'quarterly' %}selected{% endif %}>Quarterly</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label for="next_contact_due">Manual Due Date</label><input type="date" id="next_contact_due" name="next_contact_due" value="{{ relationship.next_contact_due.strftime('%Y-%m-%d') if relationship.next_contact_due else '' }}"></div>
-                </div>
-                 <div class="form-group">
-                    <label for="next_follow_up_topic">Next Follow-up Topic</label>
-                    <textarea id="next_follow_up_topic" name="next_follow_up_topic" placeholder="What should you talk about next?">{{ relationship.next_follow_up_topic or '' }}</textarea>
+                <div class="form-group">
+                    <label for="follow_up_frequency">Automatic Follow-up Cadence</label>
+                    <select id="follow_up_frequency" name="follow_up_frequency">
+                        <option value="" {% if not relationship.follow_up_frequency %}selected{% endif %}>None (Manual Only)</option>
+                        <option value="daily" {% if relationship.follow_up_frequency == 'daily' %}selected{% endif %}>Daily</option>
+                        <option value="weekly" {% if relationship.follow_up_frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+                        <option value="bi-weekly" {% if relationship.follow_up_frequency == 'bi-weekly' %}selected{% endif %}>Every 2 Weeks</option>
+                        <option value="monthly" {% if relationship.follow_up_frequency == 'monthly' %}selected{% endif %}>Monthly</option>
+                        <option value="quarterly" {% if relationship.follow_up_frequency == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                    </select>
                 </div>
             </div>
 
@@ -281,8 +274,6 @@
 
     // --- Initialization on Page Load ---
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('next_contact_due').min = new Date().toISOString().split('T')[0];
-
         // Init Connection Types visuals
         document.querySelectorAll('#connection-types-checklist input[type="checkbox"]:checked').forEach(cb => {
             cb.closest('.checklist-item').classList.add('selected');

@@ -1,0 +1,159 @@
+/* static/modals.css */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-primary);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+.modal-body {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.filter-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.filter-controls input,
+.filter-controls select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--border-primary);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: var(--bg-form-field);
+    color: var(--text-primary);
+}
+
+.modal-results-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+}
+
+.modal-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-primary);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.modal-list-item:last-child {
+    border-bottom: none;
+}
+
+.modal-list-item:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.modal-list-item.selected {
+    background-color: var(--color-info-bg);
+    color: var(--color-info-text);
+    font-weight: 500;
+}
+
+.modal-list-item i {
+    color: var(--accent-primary);
+    font-size: 1.1rem;
+}
+
+.modal-list-item.selected i {
+    color: var(--color-info-text);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-primary);
+    padding-top: 20px;
+    margin-top: 20px;
+    text-align: right;
+}
+
+.btn-secondary-outline {
+    background: transparent;
+    border: 2px solid var(--accent-primary);
+    color: var(--accent-primary);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary-outline:hover {
+    background: var(--accent-primary);
+    color: var(--text-inverted);
+}
+
+.selected-pills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--color-info-bg);
+    color: var(--color-info-text);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.remove-pill {
+    margin-left: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}

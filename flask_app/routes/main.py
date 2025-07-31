@@ -1,20 +1,19 @@
 from datetime import datetime, UTC, timedelta
 
 from flask import render_template, current_app
-from sqlalchemy import case
+from sqlalchemy import case, func
 from sqlalchemy.orm import joinedload
 
 from flask_app import app, db
-from flask_app.models import (
+from flask_app.models.models import (
     Relationship, SocialMedia, Tag, Platform, ConnectionType,
-    RelationshipConnectionType, RelationshipTag
+    RelationshipConnectionType, RelationshipTag, Event, FollowUp
 )
 
 
-def _update_next_contact_date(relationship: Relationship):
+def _create_next_automated_follow_up(relationship: Relationship):
     """
-    Automatically calculates the next contact due date based on the relationship's
-    follow-up frequency.
+    Creates a new FollowUp record based on the relationship's follow-up frequency.
     """
     if not relationship.follow_up_frequency:
         return
@@ -29,7 +28,14 @@ def _update_next_contact_date(relationship: Relationship):
 
     delta = frequency_map.get(relationship.follow_up_frequency)
     if delta:
-        relationship.next_contact_due = datetime.now(UTC) + delta
+        due_date = datetime.now(UTC) + delta
+        new_follow_up = FollowUp(
+            relationship_id=relationship.id,
+            topic=f"Automated Follow-up ({relationship.follow_up_frequency.capitalize()})",
+            due_date=due_date,
+            status='pending'
+        )
+        db.session.add(new_follow_up)
 
 
 @app.route('/')
@@ -47,12 +53,20 @@ def index():
         else_=0
     ).desc()
 
-    relationships = Relationship.query.options(
+    # Subquery to find the earliest pending due date for each relationship
+    subquery = db.session.query(
+        FollowUp.relationship_id,
+        func.min(FollowUp.due_date).label('next_due_date')
+    ).filter(FollowUp.status == 'pending').group_by(FollowUp.relationship_id).subquery()
+
+    relationships = Relationship.query.outerjoin(
+        subquery, Relationship.id == subquery.c.relationship_id
+    ).options(
         joinedload(Relationship.connection_type_associations).joinedload(RelationshipConnectionType.connection_type),
         joinedload(Relationship.tag_associations).joinedload(RelationshipTag.tag),
         joinedload(Relationship.social_media).joinedload(SocialMedia.platform)
     ).order_by(
-        Relationship.next_contact_due.asc().nullslast(),
+        subquery.c.next_due_date.asc().nullslast(),
         priority_ordering
     ).all()
 
@@ -128,12 +142,35 @@ def recalculate_all_ratings_logic():
     print("Recalculation complete.")
 
 
-# Import route modules to register their routes
-from flask_app import (
-    api,
-    events,
-    interactions,
-    connection_types,
-    relationships,
-    platforms
-)
+def _calculate_single_event_importance(event, priority_scores):
+    """Calculates the importance score for a single event based on its participants."""
+    score = 0
+    # Because participants is a 'dynamic' loader, accessing it here returns a query
+    # which we can then iterate over.
+    if not event.participants:
+        return 0
+    for participant in event.participants:
+        score += priority_scores.get(participant.priority, 0)
+    return score
+
+
+def recalculate_all_event_importance_logic():
+    """Recalculates importance scores for all events."""
+    print("Starting importance recalculation for all events...")
+    priority_scores = current_app.config.get('PRIORITY_SCORES', {})
+
+    # MODIFIED: Removed the incompatible .options(joinedload(...))
+    # We will let the 'lazy=dynamic' relationship handle loading participants
+    # inside the loop.
+    events = Event.query.all()
+
+    for event in events:
+        event.importance_score = _calculate_single_event_importance(event, priority_scores)
+    db.session.commit()
+    print("Event importance recalculation complete.")
+
+
+@app.cli.command("recalculate-event-importance")
+def recalculate_event_importance_command():
+    """CLI wrapper for the event importance recalculation logic."""
+    recalculate_all_event_importance_logic()

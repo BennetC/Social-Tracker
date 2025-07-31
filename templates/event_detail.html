@@ -13,7 +13,10 @@
 {% block content %}
 <div class="event-detail-container">
     <div class="page-header">
-        <h1><i class="fas fa-calendar-day"></i> {{ event.title }}</h1>
+        <h1>
+            <i class="fas fa-calendar-day"></i> {{ event.title }}
+            {% if event.is_potential %}<span class="potential-indicator">(Tentative)</span>{% endif %}
+        </h1>
     </div>
 
     <div class="details-content-wrapper">
@@ -34,11 +37,33 @@
             <div class="info-card">
                 <label>Priority</label>
                 <div class="value">
-                    {# This priority badge style is now globally available via shared_styles.css #}
                     <span class="priority-badge {{ event.priority|lower|replace(' ', '-') }}">{{ event.priority }}</span>
                 </div>
             </div>
+            <div class="info-card">
+                <label>Importance Score</label>
+                <div class="value">
+                     <i class="fas fa-star"></i>
+                    {{ "%.2f"|format(event.importance_score) }}
+                </div>
+            </div>
         </div>
+
+        {% if event.is_potential %}
+        <div class="detail-section potential-analysis">
+            <h2 class="section-title">Tentative Analysis</h2>
+            <div class="analysis-grid">
+                <div class="analysis-card pros">
+                    <h3><i class="fas fa-plus-circle"></i> Pros</h3>
+                    <p>{{ event.pros|safe if event.pros else 'Not specified.' }}</p>
+                </div>
+                <div class="analysis-card cons">
+                    <h3><i class="fas fa-minus-circle"></i> Cons</h3>
+                    <p>{{ event.cons|safe if event.cons else 'Not specified.' }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <div class="detail-section">
             <h2 class="section-title">Details</h2>
@@ -46,6 +71,24 @@
                 {{ event.details|safe if event.details else 'No details provided.' }}
             </div>
         </div>
+
+        {% if event.outcome or event.learnings %}
+        <div class="detail-section">
+            <h2 class="section-title">Follow-Up & Analysis</h2>
+            {% if event.outcome %}
+            <div class="info-card analysis-block">
+                <label><i class="fas fa-clipboard-check"></i> Outcome</label>
+                <div class="text-block">{{ event.outcome|safe }}</div>
+            </div>
+            {% endif %}
+            {% if event.learnings %}
+            <div class="info-card analysis-block">
+                <label><i class="fas fa-brain"></i> Key Learnings</label>
+                <div class="text-block">{{ event.learnings|safe }}</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
 
         <div class="detail-section">
             <h2 class="section-title">Participants ({{ event.participants.count() }})</h2>

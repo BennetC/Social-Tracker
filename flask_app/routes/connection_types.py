@@ -2,7 +2,7 @@ from flask import request, redirect, url_for, render_template, flash
 from sqlalchemy.exc import IntegrityError
 
 from flask_app import app, db
-from flask_app.models import ConnectionType
+from flask_app.models.models import ConnectionType
 
 
 @app.route('/connection-types', methods=['GET', 'POST'])

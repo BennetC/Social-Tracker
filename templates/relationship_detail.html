@@ -92,12 +92,6 @@
                 <div class="text-block goal">"{{ relationship.goal }}"</div>
             </div>
             {% endif %}
-             {% if relationship.next_follow_up_topic %}
-            <div class="info-card" style="margin-bottom: 15px;">
-                <label>Next Follow-up Topic</label>
-                <div class="text-block topic-block">{{ relationship.next_follow_up_topic }}</div>
-            </div>
-            {% endif %}
             {% if relationship.execution_strategy %}
             <div class="info-card">
                 <label>Execution Strategy</label>
@@ -105,6 +99,52 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- Upcoming Follow-ups -->
+        <div class="detail-section" id="follow-ups">
+            <h2 class="section-title"><i class="fas fa-tasks"></i> Upcoming Follow-ups</h2>
+            <div class="follow-up-container">
+                <div class="follow-up-list">
+                    {% if pending_follow_ups %}
+                        {% for followup in pending_follow_ups %}
+                        <div class="follow-up-item">
+                            <div class="follow-up-details">
+                                <span class="follow-up-topic">{{ followup.topic }}</span>
+                                <span class="follow-up-date">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    {{ followup.due_date.strftime('%b %d, %Y') }}
+                                </span>
+                            </div>
+                            <div class="follow-up-actions">
+                                <form action="{{ url_for('delete_follow_up', follow_up_id=followup.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                    <button type="submit" class="btn-action delete" title="Delete Task">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="no-history">No pending follow-ups scheduled.</p>
+                    {% endif %}
+                </div>
+                <div class="follow-up-form-container">
+                    <h3>Add New Follow-up</h3>
+                    <form action="{{ url_for('add_follow_up', relationship_id=relationship.id) }}" method="POST" class="inline-form">
+                        <div class="form-group topic">
+                            <label for="follow-up-topic">Topic *</label>
+                            <input type="text" id="follow-up-topic" name="topic" required placeholder="e.g., 'Send holiday pictures'">
+                        </div>
+                        <div class="form-group date">
+                            <label for="follow-up-due-date">Due Date *</label>
+                            <input type="date" id="follow-up-due-date" name="due_date" required>
+                        </div>
+                        <button type="submit" class="btn-add-follow-up"><i class="fas fa-plus"></i> Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
 
         <!-- Interaction Context -->
         <div class="detail-section" id="interaction-history">
@@ -140,6 +180,25 @@
                             <label for="interaction-details">Details</label>
                             <textarea id="interaction-details" name="details" rows="4" placeholder="What was discussed? What was the outcome?"></textarea>
                         </div>
+
+                        {% if pending_follow_ups %}
+                        <div class="form-group follow-up-completion">
+                            <label>Was this interaction a scheduled follow-up?</label>
+                            <div class="radio-group">
+                                 <div class="radio-item">
+                                    <input type="radio" id="no-follow-up" name="completed_follow_up_id" value="" checked>
+                                    <label for="no-follow-up">No, this was a new interaction.</label>
+                                </div>
+                                {% for followup in pending_follow_ups %}
+                                <div class="radio-item">
+                                    <input type="radio" id="follow-up-{{ followup.id }}" name="completed_follow_up_id" value="{{ followup.id }}">
+                                    <label for="follow-up-{{ followup.id }}">{{ followup.topic }} (Due: {{ followup.due_date.strftime('%b %d') }})</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <button type="submit" class="btn-log-interaction"><i class="fas fa-plus"></i> Log Interaction</button>
                     </form>
                 </div>
@@ -178,8 +237,57 @@
             </div>
         </div>
 
-        <!-- Social Media Profiles, Tags, Notes, etc. -->
-        <!-- ... (rest of the file remains the same) ... -->
+        <!-- Social Media Profiles, Tags -->
+        <div class="detail-section">
+             <h2 class="section-title"><i class="fas fa-link"></i> Social Media & Tags</h2>
+            <div class="grid-2-col">
+                <div class="info-card">
+                    <label>Social Profiles</label>
+                     <div class="social-links-list">
+                        {% if relationship.social_media %}
+                            {% for sm in relationship.social_media %}
+                                <div class="social-link-item {% if sm.is_primary %}primary{% endif %}">
+                                    <a href="{{ sm.profile_link or '#' }}" target="_blank" rel="noopener noreferrer" title="{{ sm.platform.name }}">
+                                        <i class="fas fa-external-link-alt"></i> {{ sm.handle or sm.platform.name }}
+                                    </a>
+                                     {% if sm.is_primary %}<span class="primary-indicator">(Primary)</span>{% endif %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-data">No social media profiles added.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <label>Tags</label>
+                    <div class="tags-display-container">
+                         {% if relationship.tag_associations %}
+                             {% for assoc in relationship.tag_associations %}
+                                <span class="tag-display-item {% if assoc.is_primary %}primary{% endif %}">
+                                    {{ assoc.tag.name }}
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-data">No tags assigned.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Notes -->
+        <div class="detail-section">
+            <h2 class="section-title"><i class="fas fa-sticky-note"></i> Additional Notes</h2>
+            <div class="text-block notes">
+                {% if relationship.notes %}
+                    {{ relationship.notes | safe }}
+                {% else %}
+                    <p class="no-data">No additional notes provided.</p>
+                {% endif %}
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

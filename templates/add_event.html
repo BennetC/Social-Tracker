@@ -5,6 +5,7 @@
 {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='form_styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='add_event.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='modals.css') }}">
 {% endblock %}
 
 {% block header_nav %}{% endblock %}
@@ -18,6 +19,7 @@
 
     <div class="form-container">
         <form method="POST" action="{{ url_for('add_event') }}">
+            <!-- Event Details Section -->
             <div class="form-section">
                 <h2 class="section-title">Event Details</h2>
                 <div class="form-group">
@@ -37,11 +39,7 @@
                 <div class="form-group">
                     <label for="priority">Priority</label>
                     <select id="priority" name="priority">
-                        <option value="Very High">Very High</option>
-                        <option value="High">High</option>
-                        <option value="Medium" selected>Medium</option>
-                        <option value="Low">Low</option>
-                        <option value="Very Low">Very Low</option>
+                        {% for p in priorities %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
@@ -50,18 +48,35 @@
                 </div>
             </div>
 
+            <!-- Status Section -->
+            <div class="form-section">
+                 <h2 class="section-title">Status</h2>
+                <div class="checklist-item">
+                    <input type="checkbox" name="is_potential" id="is_potential" onchange="togglePotentialFields()">
+                    <label for="is_potential">This is a tentative/potential event</label>
+                </div>
+                <div id="potential-fields" style="display: none; margin-top: 20px;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pros">Pros</label>
+                            <textarea id="pros" name="pros" rows="4" placeholder="Potential benefits or upsides..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="cons">Cons</label>
+                            <textarea id="cons" name="cons" rows="4" placeholder="Potential risks or downsides..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Participants Section -->
             <div class="form-section">
                 <h2 class="section-title">Participants</h2>
-                <div class="checklist-container">
-                    {% for rel in relationships %}
-                    <div class="checklist-item">
-                        <input type="checkbox" name="participant_ids" value="{{ rel.id }}" id="rel-{{ rel.id }}">
-                        <label for="rel-{{ rel.id }}">{{ rel.name }}</label>
-                    </div>
-                    {% else %}
-                    <p>No relationships found. Add some first!</p>
-                    {% endfor %}
-                </div>
+                <div id="selected-participants-container" class="selected-pills-container"></div>
+                <div id="participant-ids-inputs"></div>
+                <button type="button" id="manageParticipantsBtn" class="btn-secondary-outline">
+                    <i class="fas fa-users"></i> Manage Participants
+                </button>
             </div>
 
             <div class="submit-section">
@@ -71,4 +86,142 @@
         </form>
     </div>
 </div>
+
+<!-- Participant Selection Modal -->
+<div id="participants-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Select Participants</h2>
+            <button type="button" class="close-modal-btn">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="filter-controls">
+                <input type="text" id="participant-search" placeholder="Search by name...">
+                <select id="priority-filter">
+                    <option value="">All Priorities</option>
+                    {% for p in priorities %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+                </select>
+                <select id="tag-filter">
+                    <option value="">All Tags</option>
+                    {% for tag in tags %}<option value="{{ tag.id }}">{{ tag.name }}</option>{% endfor %}
+                </select>
+                <select id="ctype-filter">
+                    <option value="">All Connection Types</option>
+                    {% for ctype in connection_types %}<option value="{{ ctype.id }}">{{ ctype.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div id="modal-participants-list" class="modal-results-list"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-primary close-modal-btn">Done</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Potential/Tentative Event Logic ---
+    function togglePotentialFields() {
+        const checkbox = document.getElementById('is_potential');
+        const fields = document.getElementById('potential-fields');
+        fields.style.display = checkbox.checked ? 'block' : 'none';
+    }
+
+    // --- Participant Modal Logic ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('participants-modal');
+        const openBtn = document.getElementById('manageParticipantsBtn');
+        const closeBtns = modal.querySelectorAll('.close-modal-btn');
+        const searchInput = document.getElementById('participant-search');
+        const priorityFilter = document.getElementById('priority-filter');
+        const tagFilter = document.getElementById('tag-filter');
+        const ctypeFilter = document.getElementById('ctype-filter');
+        const resultsList = document.getElementById('modal-participants-list');
+        const selectedContainer = document.getElementById('selected-participants-container');
+        const hiddenInputsContainer = document.getElementById('participant-ids-inputs');
+
+        let selectedParticipants = [];
+
+        const renderSelectedPills = () => {
+            selectedContainer.innerHTML = '';
+            hiddenInputsContainer.innerHTML = '';
+            selectedParticipants.forEach(p => {
+                const pill = document.createElement('span');
+                pill.className = 'pill';
+                pill.innerHTML = `${p.name} <span class="remove-pill" data-id="${p.id}">×</span>`;
+                selectedContainer.appendChild(pill);
+
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'participant_ids';
+                hiddenInput.value = p.id;
+                hiddenInputsContainer.appendChild(hiddenInput);
+            });
+        };
+
+        const toggleParticipant = (participant) => {
+            const index = selectedParticipants.findIndex(p => p.id === participant.id);
+            if (index > -1) {
+                selectedParticipants.splice(index, 1);
+            } else {
+                selectedParticipants.push(participant);
+            }
+            renderSelectedPills();
+            renderModalList(window.currentModalList || []);
+        };
+
+        const renderModalList = (participants) => {
+            window.currentModalList = participants;
+            resultsList.innerHTML = '';
+            if (participants.length === 0) {
+                resultsList.innerHTML = '<p class="empty-state">No relationships found.</p>';
+                return;
+            }
+            participants.forEach(p => {
+                const isSelected = selectedParticipants.some(sp => sp.id === p.id);
+                const item = document.createElement('div');
+                item.className = `modal-list-item ${isSelected ? 'selected' : ''}`;
+                item.innerHTML = `<span>${p.name}</span><i class="fas ${isSelected ? 'fa-check-circle' : 'fa-plus-circle'}"></i>`;
+                item.addEventListener('click', () => toggleParticipant(p));
+                resultsList.appendChild(item);
+            });
+        };
+
+        const fetchRelationships = async () => {
+            const q = searchInput.value;
+            const priority = priorityFilter.value;
+            const tag_id = tagFilter.value;
+            const ctype_id = ctypeFilter.value;
+            const url = `/api/relationships/search?q=${q}&priority=${priority}&tag_id=${tag_id}&ctype_id=${ctype_id}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                renderModalList(data);
+            } catch (error) {
+                console.error("Failed to fetch relationships:", error);
+                resultsList.innerHTML = '<p class="empty-state">Error loading data.</p>';
+            }
+        };
+
+        let debounceTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fetchRelationships, 300);
+        });
+        [priorityFilter, tagFilter, ctypeFilter].forEach(el => el.addEventListener('change', fetchRelationships));
+
+        openBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            fetchRelationships();
+        });
+        closeBtns.forEach(btn => btn.addEventListener('click', () => modal.style.display = 'none'));
+
+        selectedContainer.addEventListener('click', e => {
+            if (e.target.classList.contains('remove-pill')) {
+                const id = e.target.dataset.id;
+                toggleParticipant({ id });
+            }
+        });
+    });
+</script>
 {% endblock %}

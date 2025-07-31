@@ -42,10 +42,50 @@
                         <i class="fas fa-users"></i>
                         <span>{{ event.participants.count() }} Participant(s)</span>
                     </div>
+                    <div class="event-importance">
+                        <i class="fas fa-star"></i>
+                        <span>Importance: {{ "%.2f"|format(event.importance_score) }}</span>
+                    </div>
                 </div>
             </a>
             {% else %}
             <p class="empty-state">No upcoming events. Time to plan something!</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="event-section">
+        <h2><i class="fas fa-lightbulb"></i> Tentative Events</h2>
+        <div class="events-grid">
+            {% for event in potential_events %}
+            <a href="{{ url_for('get_event', event_id=event.id) }}" class="event-card">
+                <div class="event-header">
+                    <span class="event-title">{{ event.title }}</span>
+                    <span class="priority-badge {{ event.priority|lower|replace(' ', '-') }}">{{ event.priority }}</span>
+                </div>
+                <div class="event-body">
+                    <div class="event-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        {% if event.start_date and event.end_date %}
+                            {{ event.start_date.strftime('%b %d') }} - {{ event.end_date.strftime('%b %d, %Y') }}
+                        {% elif event.start_date %}
+                            On {{ event.start_date.strftime('%b %d, %Y') }}
+                        {% else %}
+                            Date TBD
+                        {% endif %}
+                    </div>
+                    <div class="event-participants">
+                        <i class="fas fa-users"></i>
+                        <span>{{ event.participants.count() }} Participant(s)</span>
+                    </div>
+                    <div class="event-importance">
+                        <i class="fas fa-star"></i>
+                        <span>Importance: {{ "%.2f"|format(event.importance_score) }}</span>
+                    </div>
+                </div>
+            </a>
+            {% else %}
+            <p class="empty-state">No tentative events being considered.</p>
             {% endfor %}
         </div>
     </div>
@@ -67,6 +107,10 @@
                         {% else %}
                             Date Unknown
                         {% endif %}
+                    </div>
+                     <div class="event-importance">
+                        <i class="fas fa-star"></i>
+                        <span>Importance: {{ "%.2f"|format(event.importance_score) }}</span>
                     </div>
                 </div>
             </a>

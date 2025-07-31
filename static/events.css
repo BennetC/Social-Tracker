@@ -74,7 +74,8 @@
 }
 
 .event-date,
-.event-participants {
+.event-participants,
+.event-importance {
     display: flex;
     align-items: center;
     gap: 8px;

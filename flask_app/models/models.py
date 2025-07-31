@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, UTC
 from flask_app import db
+from sqlalchemy import func
 
 priority_level_enum = db.Enum(
     'Very High', 'High', 'Medium', 'Low', 'Very Low',
@@ -15,6 +16,11 @@ interaction_type_enum = db.Enum(
 interaction_level_enum = db.Enum(
     'New', 'Active', 'Dormant', 'Not Contacted',
     name='interaction_level',
+    create_type=False
+)
+follow_up_status_enum = db.Enum(
+    'pending', 'completed', 'cancelled',
+    name='follow_up_status',
     create_type=False
 )
 
@@ -52,8 +58,15 @@ class Event(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(UTC),
                            onupdate=lambda: datetime.now(UTC))
-
     priority = db.Column(priority_level_enum, nullable=False, default='Medium')
+
+    # New fields for enhancements
+    is_potential = db.Column(db.Boolean, default=False, nullable=False)
+    importance_score = db.Column(db.Float, default=0.0, nullable=False)
+    pros = db.Column(db.Text, nullable=True)
+    cons = db.Column(db.Text, nullable=True)
+    outcome = db.Column(db.Text, nullable=True)
+    learnings = db.Column(db.Text, nullable=True)
 
     participants = db.relationship('Relationship', secondary=event_participants, back_populates='events',
                                    lazy='dynamic')
@@ -92,13 +105,11 @@ class Relationship(db.Model):
     goal = db.Column(db.String(255))
     execution_strategy = db.Column(db.String(255))
     last_contacted = db.Column(db.DateTime(timezone=True))
-    next_contact_due = db.Column(db.DateTime(timezone=True))
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(UTC),
                            onupdate=lambda: datetime.now(UTC))
     notes = db.Column(db.Text)
     follow_up_frequency = db.Column(db.String(50), nullable=True)
-    next_follow_up_topic = db.Column(db.Text, nullable=True)
 
     priority = db.Column(priority_level_enum, nullable=False, default='Medium')
     interaction_level = db.Column(interaction_level_enum, nullable=False, default='Not Contacted')
@@ -110,6 +121,8 @@ class Relationship(db.Model):
                                    order_by="desc(InteractionHistory.date)")
     social_media = db.relationship('SocialMedia', back_populates='relationship', cascade="all, delete-orphan")
     events = db.relationship('Event', secondary=event_participants, back_populates='participants', lazy='dynamic')
+    follow_ups = db.relationship('FollowUp', back_populates='relationship', cascade="all, delete-orphan",
+                                 order_by="FollowUp.due_date")
 
     @property
     def connection_type(self):
@@ -119,6 +132,31 @@ class Relationship(db.Model):
         if self.connection_type_associations:
             return self.connection_type_associations[0].connection_type.name
         return "N/A"
+
+    @property
+    def next_contact_due(self):
+        # This property is now for display/sorting, it finds the earliest pending follow-up
+        next_follow_up = db.session.query(func.min(FollowUp.due_date)).filter(
+            FollowUp.relationship_id == self.id,
+            FollowUp.status == 'pending'
+        ).scalar()
+        return next_follow_up
+
+
+class FollowUp(db.Model):
+    __tablename__ = 'follow_ups'
+    id = db.Column(db.Integer, primary_key=True)
+    relationship_id = db.Column(db.Uuid(as_uuid=True), db.ForeignKey('relationships.id'), nullable=False)
+    topic = db.Column(db.String(255), nullable=False)
+    due_date = db.Column(db.DateTime(timezone=True), nullable=False)
+    status = db.Column(follow_up_status_enum, nullable=False, default='pending')
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    completed_at = db.Column(db.DateTime(timezone=True), nullable=True)
+
+    relationship = db.relationship('Relationship', back_populates='follow_ups')
+
+    def __repr__(self):
+        return f'<FollowUp {self.topic} on {self.due_date}>'
 
 
 class Platform(db.Model):

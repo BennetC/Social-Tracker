@@ -1,14 +1,13 @@
 from datetime import datetime, UTC
 from flask import request, redirect, url_for, render_template, current_app, flash
 from sqlalchemy.orm import joinedload
-from sqlalchemy.exc import IntegrityError
 
 from flask_app import app, db
-from flask_app.models import (
+from flask_app.models.models import (
     Relationship, SocialMedia, Tag, Platform, ConnectionType,
-    RelationshipConnectionType, RelationshipTag
+    RelationshipConnectionType, RelationshipTag, FollowUp
 )
-from flask_app.main import recalculate_all_ratings_logic
+from flask_app.routes.main import recalculate_all_ratings_logic, recalculate_all_event_importance_logic
 
 
 @app.route('/add-relationship')
@@ -43,10 +42,7 @@ def create_relationship():
             priority=data.get('priority', 'Medium'),
             interaction_level=data.get('interaction_level', 'Not Contacted'),
             notes=data.get('notes'),
-            next_contact_due=datetime.strptime(data.get('next_contact_due'), '%Y-%m-%d').replace(
-                tzinfo=UTC) if data.get('next_contact_due') else None,
-            follow_up_frequency=data.get('follow_up_frequency') or None,
-            next_follow_up_topic=data.get('next_follow_up_topic')
+            follow_up_frequency=data.get('follow_up_frequency') or None
         )
         db.session.add(relationship)
         db.session.flush()
@@ -82,6 +78,7 @@ def create_relationship():
 
         db.session.commit()
         recalculate_all_ratings_logic()
+        recalculate_all_event_importance_logic()
         flash("Relationship added successfully!", "success")
         return redirect(url_for('index'))
 
@@ -96,9 +93,14 @@ def create_relationship():
 def get_relationship(relationship_id):
     """Get relationship details"""
     relationship = Relationship.query.options(
-        joinedload(Relationship.interactions)
+        joinedload(Relationship.interactions),
+        joinedload(Relationship.follow_ups)
     ).get_or_404(relationship_id)
-    return render_template('relationship_detail.html', relationship=relationship)
+    pending_follow_ups = sorted(
+        [f for f in relationship.follow_ups if f.status == 'pending'],
+        key=lambda x: x.due_date
+    )
+    return render_template('relationship_detail.html', relationship=relationship, pending_follow_ups=pending_follow_ups)
 
 
 @app.route('/relationships/<uuid:relationship_id>/edit', methods=['GET', 'POST'])
@@ -122,10 +124,7 @@ def edit_relationship(relationship_id):
             relationship.priority = data.get('priority', 'Medium')
             relationship.interaction_level = data.get('interaction_level', 'Not Contacted')
             relationship.notes = data.get('notes')
-            relationship.next_contact_due = datetime.strptime(data.get('next_contact_due'), '%Y-%m-%d').replace(
-                tzinfo=UTC) if data.get('next_contact_due') else None
             relationship.follow_up_frequency = data.get('follow_up_frequency') or None
-            relationship.next_follow_up_topic = data.get('next_follow_up_topic')
 
             # Update connection types
             RelationshipConnectionType.query.filter_by(relationship_id=relationship.id).delete()
@@ -166,6 +165,7 @@ def edit_relationship(relationship_id):
 
             db.session.commit()
             recalculate_all_ratings_logic()
+            recalculate_all_event_importance_logic()
             flash('Relationship updated successfully!', 'success')
             return redirect(url_for('get_relationship', relationship_id=relationship.id))
 
@@ -253,3 +253,48 @@ def _process_social_media_data(relationship, data):
             profile_link=current_link or None,
             is_primary=is_primary
         ))
+
+
+@app.route('/relationships/<uuid:relationship_id>/add_follow_up', methods=['POST'])
+def add_follow_up(relationship_id):
+    """Adds a new manual follow-up task to a relationship."""
+    relationship = Relationship.query.get_or_404(relationship_id)
+    try:
+        data = request.form
+        topic = data.get('topic')
+        due_date_str = data.get('due_date')
+
+        if not topic or not due_date_str:
+            raise ValueError("Topic and due date are required.")
+
+        due_date = datetime.strptime(due_date_str, '%Y-%m-%d').replace(tzinfo=UTC)
+
+        follow_up = FollowUp(
+            relationship_id=relationship.id,
+            topic=topic,
+            due_date=due_date
+        )
+        db.session.add(follow_up)
+        db.session.commit()
+        flash('Follow-up task added.', 'success')
+    except (ValueError, KeyError) as e:
+        db.session.rollback()
+        flash(f'Error adding follow-up: {e}', 'danger')
+
+    return redirect(url_for('get_relationship', relationship_id=relationship_id) + '#follow-ups')
+
+
+@app.route('/follow_ups/<int:follow_up_id>/delete', methods=['POST'])
+def delete_follow_up(follow_up_id):
+    """Deletes a follow-up task."""
+    follow_up = FollowUp.query.get_or_404(follow_up_id)
+    relationship_id = follow_up.relationship_id
+    try:
+        db.session.delete(follow_up)
+        db.session.commit()
+        flash('Follow-up task deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting task: {e}', 'danger')
+
+    return redirect(url_for('get_relationship', relationship_id=relationship_id) + '#follow-ups')

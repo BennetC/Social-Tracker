@@ -1,7 +1,7 @@
 from flask import render_template
 
 from flask_app import app
-from flask_app.models import Platform
+from flask_app.models.models import Platform
 
 
 @app.route('/platforms')
