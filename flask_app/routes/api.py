@@ -1,9 +1,10 @@
-from flask import jsonify, request
+from flask import jsonify, request, url_for
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
 from flask_app import app, db
-from flask_app.models.models import Tag, Relationship, RelationshipTag, RelationshipConnectionType, event_participants
+from flask_app.models.models import Tag, Relationship, RelationshipTag, RelationshipConnectionType, event_participants, \
+    Event
 
 
 @app.route('/api/tags/recent')
@@ -58,3 +59,31 @@ def search_relationships():
         relationships = [rel for rel, count in top_attendees]
 
     return jsonify([{'id': str(rel.id), 'name': rel.name} for rel in relationships])
+
+
+@app.route('/api/calendar-events')
+def get_calendar_events():
+    """
+    Returns all events in a format that FullCalendar can consume.
+    """
+    events = Event.query.all()
+    event_list = []
+    for event in events:
+        event_data = {
+            'title': event.title,
+            'start': event.start_date.isoformat() if event.start_date else None,
+            'end': event.calendar_end_date.isoformat() if event.calendar_end_date else None,
+            'url': url_for('get_event', event_id=event.id),
+            'allDay': True  # Assume all-day events for now
+        }
+        if event.is_potential:
+            event_data['className'] = 'event-potential'
+            event_data['color'] = 'var(--color-warning-bg)'
+            event_data['textColor'] = 'var(--color-warning-text)'
+        else:
+            event_data['color'] = 'var(--accent-primary)'
+            event_data['textColor'] = 'var(--text-inverted)'
+
+        event_list.append(event_data)
+
+    return jsonify(event_list)

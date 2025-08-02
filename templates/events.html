@@ -1,21 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Event Calendar - Social Tracker{% endblock %}
+{% block title %}Event List - Social Tracker{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='events.css') }}">
 {% endblock %}
 
 {% block header_nav %}
-    {# Override the default navigation to provide a link back to the dashboard #}
-    <a href="{{ url_for('index') }}" class="nav-link"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    {# Contextual navigation for the Events page #}
     <a href="{{ url_for('add_event') }}" class="add-btn"><i class="fas fa-plus"></i> Add Event</a>
 {% endblock %}
 
 {% block content %}
-    {# The main header is now handled by base.html, we just need the title #}
     <div class="page-title-container">
-        <h1><i class="fas fa-calendar-check"></i> Event Calendar</h1>
+        <h1><i class="fas fa-calendar-check"></i> Event List</h1>
     </div>
 
     <div class="event-section">

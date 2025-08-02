@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from flask_app import db
 from sqlalchemy import func
 
@@ -25,9 +25,10 @@ follow_up_status_enum = db.Enum(
 )
 
 event_participants = db.Table('event_participants',
-    db.Column('event_id', db.Integer, db.ForeignKey('events.id'), primary_key=True),
-    db.Column('relationship_id', db.Uuid(as_uuid=True), db.ForeignKey('relationships.id'), primary_key=True)
-)
+                              db.Column('event_id', db.Integer, db.ForeignKey('events.id'), primary_key=True),
+                              db.Column('relationship_id', db.Uuid(as_uuid=True), db.ForeignKey('relationships.id'),
+                                        primary_key=True)
+                              )
 
 
 class RelationshipConnectionType(db.Model):
@@ -70,6 +71,20 @@ class Event(db.Model):
 
     participants = db.relationship('Relationship', secondary=event_participants, back_populates='events',
                                    lazy='dynamic')
+
+    @property
+    def calendar_end_date(self):
+        """
+        FullCalendar's end date is exclusive. If an event ends on the 10th,
+        the end date should be the 11th for it to render correctly on the calendar.
+        """
+        if self.end_date:
+            return self.end_date + timedelta(days=1)
+        if self.start_date:
+            # If there's no end date, it's a single-day event.
+            # FullCalendar handles this correctly if `end` is null.
+            return None
+        return None
 
     def __repr__(self):
         return f'<Event {self.title}>'

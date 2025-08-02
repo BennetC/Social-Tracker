@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Event Calendar - Social Tracker{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='calendar.css') }}">
+    <!-- FullCalendar JS from CDN -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+{% endblock %}
+
+{% block header_nav %}
+    {# The main navigation is in base.html now. This is for contextual actions. #}
+    <a href="{{ url_for('add_event') }}" class="add-btn"><i class="fas fa-plus"></i> Add Event</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-title-container">
+    <h1><i class="fas fa-calendar-alt"></i> Event Calendar</h1>
+</div>
+
+<div class="calendar-container">
+    <div id='calendar'></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek' // Removed 'listWeek'
+            },
+            buttonText: {
+                today: 'Today',
+                month: 'Month',
+                week: 'Week'
+            },
+            events: '/api/calendar-events',
+            editable: false,
+            selectable: true,
+            dayMaxEvents: true,
+            height: 'auto', // Adjusts height to content, prevents internal scrollbar
+            eventMouseEnter: function(info) {
+                info.el.style.filter = 'brightness(1.15)';
+            },
+            eventMouseLeave: function(info) {
+                info.el.style.filter = 'brightness(1)';
+            }
+        });
+        calendar.render();
+    });
+</script>
+{% endblock %}

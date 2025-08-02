@@ -33,6 +33,12 @@ def view_events():
     )
 
 
+@app.route('/calendar')
+def calendar_view():
+    """Displays the new FullCalendar view of events."""
+    return render_template('calendar.html')
+
+
 @app.route('/events/add', methods=['GET', 'POST'])
 def add_event():
     """Handles creating a new event."""
